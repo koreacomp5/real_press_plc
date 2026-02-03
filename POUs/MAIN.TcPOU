@@ -26,6 +26,7 @@ Axis02_Manual();
 Axis02_Auto();
 Axis02_Alarm();
 Axis02_Speed_Offset();
+Axis02_Task_Offset();
 
 
 //Axis03
@@ -69,7 +70,8 @@ System();
 Login_Timer();
 
 //Vision
-Vision_ST();
+//Vision_ST();
+Vision();
 Move_Command();
 
 //Work
@@ -99,6 +101,7 @@ Vision_Step_ST();
       <LineId Id="307" Count="0" />
       <LineId Id="317" Count="0" />
       <LineId Id="227" Count="0" />
+      <LineId Id="338" Count="0" />
       <LineId Id="261" Count="0" />
       <LineId Id="290" Count="0" />
       <LineId Id="127" Count="0" />
@@ -139,6 +142,7 @@ Vision_Step_ST();
       <LineId Id="274" Count="0" />
       <LineId Id="273" Count="0" />
       <LineId Id="276" Count="0" />
+      <LineId Id="339" Count="0" />
       <LineId Id="330" Count="0" />
       <LineId Id="328" Count="0" />
       <LineId Id="259" Count="0" />

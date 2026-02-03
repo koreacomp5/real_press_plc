@@ -64,6 +64,9 @@
     <Compile Include="POUs\Axis02_X\Axis02_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Axis02_X\Axis02_Task_Offset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Axis03_Y\Axis03_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -214,9 +217,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\_regacy\Axis02_X\Axis02_Speed_Offset.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Task_Offset.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\_regacy\Axis03_Y\Axis03_Interlock.TcPOU">
