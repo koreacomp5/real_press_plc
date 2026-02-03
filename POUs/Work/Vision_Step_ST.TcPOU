@@ -22,17 +22,13 @@ GVL_Vision_Step.Status :=
     AND GVL_System.Safety_ALL_OK;
 
 // 코일 초기화
-GVL_Vision_Step.Vision_Start := FALSE;
-GVL_Vision_Step.Wait_Vision_OK := FALSE;
-GVL_Vision_Step.Data_Copy := FALSE;
-GVL_Vision_Step.Data_Copy_Check := FALSE;
 GVL_Vision_Step.Data_Initial := FALSE;
 
 // State Machine
 IF GVL_Vision_Step.Status THEN
 
     IF GVL_Vision_Step.NO = 0 THEN
-        GVL_Vision_Step.Vision_Start := TRUE;
+
         IF (Vision_OK_Trig.Q OR Vision_NG_Trig.Q) AND GVL_Vision.Run THEN
             GVL_Vision_Step.NO := 1;
         END_IF
@@ -40,7 +36,6 @@ IF GVL_Vision_Step.Status THEN
 
     IF GVL_Vision_Step.NO = 1 THEN
         IF NOT GVL_Vision.Data_Copy_Comp THEN
-            GVL_Vision_Step.Wait_Vision_OK := TRUE;
             IF  GVL_Vision.Vision_OK THEN
                 GVL_Vision_Step.NO := 5;
             ELSIF GVL_Vision.Vision_NG THEN
@@ -50,19 +45,11 @@ IF GVL_Vision_Step.Status THEN
     END_IF
 
     IF GVL_Vision_Step.NO = 5 THEN
-        GVL_Vision_Step.Data_Copy := TRUE;
-        IF (GVL_Vision.Data_Read_X = GVL_Vision.Data_Buffer_X)
-           AND (GVL_Vision.Data_Read_Y = GVL_Vision.Data_Buffer_Y)
-           AND (GVL_Vision.Data_Read_R = GVL_Vision.Data_Buffer_R) THEN
-            GVL_Vision_Step.NO := 10;
-        END_IF
-    END_IF
-
-    IF GVL_Vision_Step.NO = 10 THEN
-        IF GVL_Vision.Data_Copy_Comp THEN
-            GVL_Vision_Step.Data_Copy_Check := TRUE;
-            GVL_Vision_Step.NO := 15;
-        END_IF
+		GVL_Vision.Data_Buffer_X := GVL_Vision.Data_Read_X;
+		GVL_Vision.Data_Buffer_Y := GVL_Vision.Data_Read_Y;
+		GVL_Vision.Data_Buffer_R := GVL_Vision.Data_Read_R;
+		GVL_Vision.Data_Copy_Comp := TRUE;
+        GVL_Vision_Step.NO := 15;
     END_IF
 
     IF GVL_Vision_Step.NO = 15 THEN
@@ -71,18 +58,27 @@ IF GVL_Vision_Step.Status THEN
     END_IF
 
 END_IF
-
-// Data Copy 처리
-Data_Copy(CLK := GVL_Vision_Step.Data_Copy);
-IF Data_Copy.Q THEN
-    GVL_Vision.Data_Buffer_X := GVL_Vision.Data_Read_X;
-    GVL_Vision.Data_Buffer_Y := GVL_Vision.Data_Read_Y;
-    GVL_Vision.Data_Buffer_R := GVL_Vision.Data_Read_R;
-    GVL_Vision.Data_Copy_Comp := TRUE;
-END_IF]]></ST>
+]]></ST>
     </Implementation>
     <LineIds Name="Vision_Step_ST">
-      <LineId Id="650" Count="66" />
+      <LineId Id="650" Count="7" />
+      <LineId Id="746" Count="1" />
+      <LineId Id="664" Count="3" />
+      <LineId Id="742" Count="0" />
+      <LineId Id="669" Count="0" />
+      <LineId Id="741" Count="0" />
+      <LineId Id="671" Count="0" />
+      <LineId Id="723" Count="0" />
+      <LineId Id="673" Count="1" />
+      <LineId Id="729" Count="0" />
+      <LineId Id="731" Count="1" />
+      <LineId Id="735" Count="3" />
+      <LineId Id="733" Count="1" />
+      <LineId Id="685" Count="2" />
+      <LineId Id="743" Count="2" />
+      <LineId Id="691" Count="1" />
+      <LineId Id="694" Count="0" />
+      <LineId Id="702" Count="6" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
