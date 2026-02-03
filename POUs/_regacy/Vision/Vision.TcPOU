@@ -3,29 +3,28 @@
   <POU Name="Vision" Id="{fe608fbf-4e51-40b4-97c4-03055456ca77}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Vision
 VAR
-  trigVisionOk    : R_TRIG;	
+  	trigVisionOk    : R_TRIG;	
 
 //System_Bit
 	Always_ON	:	BOOL	:=TRUE	;//상시 ON 
 	Always_OFF	:	BOOL	:=FALSE	;//상시 OFF
 	
 	
-	TON_1: TON;
-	Time_Data_1: LREAL ;
-	
-	DATA : LREAL;
+    TON_1                     : TON;
+    Time_Data_1               : LREAL;
+    DATA                      : LREAL;
 	
 
-	CCTV: TON;
-	Work_End_Position_Set: BOOL;
-	GVL_Vision_ON_Delay_Time: INT;
-	test005: BOOL;
-	Vision_Delay: BOOL;
-	Vision_Delay_TM: TON;
-	test01: BOOL;
-	Vision_NG_Timer: TON;
-	Vision_OFF_Dealy: TON;
-	TON_0: TON;
+    CCTV                      : TON;
+    Work_End_Position_Set     : BOOL;
+    GVL_Vision_ON_Delay_Time  : INT;
+    test005                   : BOOL;
+    Vision_Delay              : BOOL;
+    Vision_Delay_TM           : TON;
+    test01                    : BOOL;
+    Vision_NG_Timer           : TON;
+    Vision_OFF_Delay          : TON;
+    TON_0                     : TON;
 END_VAR
 
 ]]></Declaration>
@@ -1716,7 +1715,7 @@ END_VAR
                       <v n="VarId">34</v>
                       <o n="Input" t="BoxTreeOperand">
                         <o n="Operand" t="Operand">
-                          <v n="Operand">"Vision_OFF_Dealy.Q"</v>
+                          <v n="Operand">"Vision_OFF_Delay.Q"</v>
                           <v n="Type">"BOOL"</v>
                           <v n="Comment">""</v>
                           <v n="SymbolComment">""</v>
@@ -2356,7 +2355,7 @@ END_VAR
                     <o>
                       <v n="BoxType">"TON"</v>
                       <o n="Instance" t="Operand">
-                        <v n="Operand">"Vision_OFF_Dealy"</v>
+                        <v n="Operand">"Vision_OFF_Delay"</v>
                         <v n="Type">"TON"</v>
                         <v n="Comment">""</v>
                         <v n="SymbolComment">""</v>

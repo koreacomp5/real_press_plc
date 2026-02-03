@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="_Vision_Step" Id="{e5cc5a74-cc08-4b0c-932f-421998a8f656}" SpecialFunc="None">
-    <Declaration><![CDATA[ PROGRAM _Vision_Step
+  <POU Name="Vision_Step" Id="{e5cc5a74-cc08-4b0c-932f-421998a8f656}" SpecialFunc="None">
+    <Declaration><![CDATA[ PROGRAM Vision_Step
 VAR
 	Always_ON		:	BOOL	:=TRUE;	//상시ON
 	Always_OFF		:	BOOL	:=FALSE;//상시OFF

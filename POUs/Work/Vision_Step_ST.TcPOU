@@ -6,7 +6,6 @@ VAR
     Always_ON        : BOOL := TRUE;
     Always_OFF       : BOOL := FALSE;
     TEST01           : BOOL;
-    Test0002         : INT;
     Data_Copy        : R_TRIG;
     Vision_OK_Trig   : R_TRIG;  // 추가
     Vision_NG_Trig   : R_TRIG;  // 추가
@@ -42,9 +41,9 @@ IF GVL_Vision_Step.Status THEN
     IF GVL_Vision_Step.NO = 1 THEN
         IF NOT GVL_Vision.Data_Copy_Comp THEN
             GVL_Vision_Step.Wait_Vision_OK := TRUE;
-            IF Vision_OK_Trig.Q THEN
+            IF  GVL_Vision.Vision_OK THEN
                 GVL_Vision_Step.NO := 5;
-            ELSIF Vision_NG_Trig.Q THEN
+            ELSIF GVL_Vision.Vision_NG THEN
                 GVL_Vision_Step.NO := 15;
             END_IF
         END_IF
@@ -68,7 +67,6 @@ IF GVL_Vision_Step.Status THEN
 
     IF GVL_Vision_Step.NO = 15 THEN
         GVL_Vision_Step.Data_Initial := TRUE;
-        Test0002 := Test0002 + 1;
         GVL_Vision_Step.NO := 0;
     END_IF
 
@@ -84,7 +82,7 @@ IF Data_Copy.Q THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="Vision_Step_ST">
-      <LineId Id="393" Count="67" />
+      <LineId Id="650" Count="66" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

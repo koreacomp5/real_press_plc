@@ -64,9 +64,6 @@
     <Compile Include="POUs\Axis02_X\Axis02_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis02_X\Axis02_Task_Offset.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Axis03_Y\Axis03_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -219,6 +216,9 @@
     <Compile Include="POUs\_regacy\Axis02_X\Axis02_Speed_Offset.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Task_Offset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\_regacy\Axis03_Y\Axis03_Interlock.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -243,10 +243,10 @@
     <Compile Include="POUs\_regacy\Vision\Vision_Calibration_ST.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\_regacy\Work\_Motion_Step.TcPOU">
+    <Compile Include="POUs\_regacy\Work\Motion_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\_regacy\Work\_Vision_Step.TcPOU">
+    <Compile Include="POUs\_regacy\Work\Vision_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

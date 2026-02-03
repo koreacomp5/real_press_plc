@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="_Motion_Step" Id="{2570e2ba-4534-4c79-8748-87544dc4a6b6}" SpecialFunc="None">
-    <Declaration><![CDATA[ PROGRAM _Motion_Step
+  <POU Name="Motion_Step" Id="{2570e2ba-4534-4c79-8748-87544dc4a6b6}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Motion_Step
 VAR
 	Axis04_Torque_Controll: TON;
 	Axis02_Wait_Pos_Moving_Delay: TON;
