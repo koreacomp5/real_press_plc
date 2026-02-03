@@ -72,10 +72,8 @@ Vision_ST();
 Move_Command();
 
 //Work
-//Motion_Step();
-//Vision_Step();
 Motion_Step_ST();
-Vision_Step_ST();
+
 
 
 
@@ -142,8 +140,6 @@ Vision_Step_ST();
       <LineId Id="330" Count="0" />
       <LineId Id="328" Count="0" />
       <LineId Id="259" Count="0" />
-      <LineId Id="286" Count="0" />
-      <LineId Id="272" Count="0" />
       <LineId Id="341" Count="0" />
       <LineId Id="340" Count="0" />
       <LineId Id="288" Count="0" />

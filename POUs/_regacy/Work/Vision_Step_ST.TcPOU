@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Vision_Step_ST" Id="{e69f656f-4fbc-4941-803f-6789390cb7a5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Vision_Step_ST
+VAR
+    Always_ON        : BOOL := TRUE;
+    Always_OFF       : BOOL := FALSE;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="Vision_Step_ST">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

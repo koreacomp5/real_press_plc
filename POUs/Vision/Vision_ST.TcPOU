@@ -7,6 +7,8 @@ VAR
     All_Initial_Trig          : R_TRIG;
     Vision_Start_Sensor_Trig  : R_TRIG;
     Press_Start_Trig          : R_TRIG;
+	Vision_OK_Trig   : R_TRIG;  // 추가
+    Vision_NG_Trig   : R_TRIG;  // 추가
     
     Always_ON                 : BOOL := TRUE;
     Always_OFF                : BOOL := FALSE;
@@ -25,6 +27,10 @@ VAR
     Vision_NG_Timer           : TON;
     Vision_OFF_Delay          : TON;
     TON_0                     : TON;
+	
+	Data_Initial : BOOL;
+	Status: BOOL;
+	NO: UINT;
 END_VAR
 
 
@@ -34,11 +40,12 @@ END_VAR
 GVL_Vision.HaertBeat_ON := FALSE;
 GVL_Vision.HaertBeat_OFF := FALSE;
 
-Data_Initial_Trig(CLK := GVL_Vision_Step.Data_Initial);
+Data_Initial_Trig(CLK := Data_Initial);
 All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
 Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
 Press_Start_Trig(CLK := GVL_Motion_Step.Press_Start);
-
+Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
+Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
 
 
 // ===== 런 10: Fiber_Sener_Sensing=====
@@ -61,15 +68,55 @@ IF GVL_Vision.Data_Copy_Comp THEN
 END_IF
 
 
+// Status 조건
+Status := 
+    ((GVL_Vision.Run AND GVL_System.Auto_Mode) OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
+    AND GVL_System.Safety_ALL_OK;
+
+// 코일 초기화
+
+IF Status THEN
+    IF NO = 0 THEN
+        IF (Vision_OK_Trig.Q OR Vision_NG_Trig.Q) AND GVL_Vision.Run THEN
+            NO := 1;
+        END_IF
+    END_IF
+
+    IF NO = 1 THEN
+        IF NOT GVL_Vision.Data_Copy_Comp THEN
+            IF  GVL_Vision.Vision_OK THEN
+                NO := 5;
+            ELSIF GVL_Vision.Vision_NG THEN
+               NO := 15;
+            END_IF
+        END_IF
+    END_IF
+
+    IF NO = 5 THEN
+		GVL_Vision.Data_Buffer_X := GVL_Vision.Data_Read_X;
+		GVL_Vision.Data_Buffer_Y := GVL_Vision.Data_Read_Y;
+		GVL_Vision.Data_Buffer_R := GVL_Vision.Data_Read_R;
+		GVL_Vision.Data_Copy_Comp := TRUE;
+        NO := 15;
+    END_IF
+
+    IF NO = 15 THEN
+        Data_Initial := TRUE;
+        NO := 0;
+    END_IF
+
+END_IF
+
 
 // ===== 런 3: Vision 데이터 초기화 =====
-IF Data_Initial_Trig.Q OR GVL_System.All_Initial THEN
+IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_X := 0;
     GVL_Vision.Data_Read_Y := 0;
     GVL_Vision.Data_Read_R := 0;
     GVL_Vision.Vision_OK := FALSE;
     GVL_Vision.Vision_NG := FALSE;
 	Vision_Delay := FALSE;
+	Data_Initial := FALSE;
 END_IF
 
 // ===== 런 4: 속도/프레임 초기화 =====
@@ -178,6 +225,7 @@ GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON
       <LineId Id="1521" Count="0" />
       <LineId Id="1525" Count="0" />
       <LineId Id="1531" Count="0" />
+      <LineId Id="1898" Count="0" />
       <LineId Id="1523" Count="0" />
       <LineId Id="1367" Count="0" />
       <LineId Id="1573" Count="0" />
@@ -189,10 +237,13 @@ GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON
       <LineId Id="1773" Count="0" />
       <LineId Id="1771" Count="0" />
       <LineId Id="1749" Count="4" />
-      <LineId Id="1715" Count="0" />
+      <LineId Id="1842" Count="0" />
+      <LineId Id="1853" Count="6" />
+      <LineId Id="1862" Count="31" />
       <LineId Id="1596" Count="0" />
       <LineId Id="1598" Count="7" />
       <LineId Id="1809" Count="0" />
+      <LineId Id="1903" Count="0" />
       <LineId Id="1606" Count="0" />
       <LineId Id="1614" Count="8" />
       <LineId Id="1630" Count="2" />

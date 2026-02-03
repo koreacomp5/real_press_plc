@@ -201,9 +201,6 @@
     <Compile Include="POUs\Work\Motion_Step_ST.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Work\Vision_Step_ST.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\_regacy\Axis01_Guide\Axis01_Interlock.TcPOU">
       <SubType>Code</SubType>
     </Compile>
