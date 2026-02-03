@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="MAIN" Id="{6aabf998-5011-40c5-ad4e-540ab5ceb3b4}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	bTest: BOOL;
+	Ax1_FB_HomeBeforeMoveAX8000: FB_HomeBeforeMoveAX8000;
+END_VAR
+VAR PERSISTENT
+	nTest : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//Axis01
+Axis01_Status();
+Axis01_Interlock_ST();
+Axis01_Command();
+Axis01_Manual();
+Axis01_Auto();
+Axis01_Alarm();
+
+//Axis02
+Axis02_Status();
+Axis02_Interlock_ST();
+Axis02_Command();
+Axis02_Manual();
+Axis02_Auto();
+Axis02_Alarm();
+Axis02_Speed_Offset();
+
+
+//Axis03
+Axis03_Status();
+Axis03_Interlock_ST();
+Axis03_Command();
+Axis03_Manual();
+Axis03_Auto();
+Axis03_Alarm();
+
+//Axis04
+Axis04_Status();
+Axis04_Command();
+Axis04_Manual();
+Axis04_Auto();
+Axis04_Alarm();
+Axis04_Set_Work_End_Speed();
+
+//Axis05
+Axis05_Interlock_ST();
+Axis05_Alarm();
+Axis05_Auto();
+Axis05_Command();
+Axis05_Manual();
+Axis05_Status();
+
+//Axis06
+Axis06_Status();
+Target_Distance();
+
+//Alarm
+Alarm_Error();
+Alarm_Warring();
+
+//System
+HMI();
+HOME_MOVE();
+Initial();
+Moving_Speed();
+System();
+Login_Timer();
+
+//Vision
+Vision_ST();
+Move_Command();
+
+//Work
+Motion_Step_ST();
+Vision_Step_ST();
+
+
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="114" Count="0" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="315" Count="0" />
+      <LineId Id="314" Count="0" />
+      <LineId Id="316" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="121" Count="0" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="294" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="301" Count="0" />
+      <LineId Id="303" Count="2" />
+      <LineId Id="134" Count="0" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="295" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="143" Count="1" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="238" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="318" Count="0" />
+      <LineId Id="274" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="328" Count="0" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="211" Count="0" />
+      <LineId Id="200" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

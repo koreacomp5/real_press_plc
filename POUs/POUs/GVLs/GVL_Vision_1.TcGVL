@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Vision_1" Id="{29c8a411-ca36-4fe1-976a-a4f3b7f8ea37}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//Vision_Bool
+	HaertBeat							:	BOOL	;
+	HaertBeat_ON						:	BOOL	;
+	HaertBeat_OFF						:	BOOL	;
+	Data_Read_Comp						:	BOOL	;
+	Data_Read_OK						:	BOOL	;
+	Data_Read_NG						:	BOOL	;
+	Axis02_Data_Apply_Comp				:	BOOL	;
+	Axis03_Data_Apply_Comp				:	BOOL	;
+	Axis05_Data_Apply_Comp				:	BOOL	;
+	Vision_Product_Type_Change			:	BOOL	;
+	PLC_Product_Type_Change				:	BOOL	;
+	Cam_Trigger				AT%I*		:	BOOL	;
+	Cam_Programmble			AT%Q*		:	BOOL	;
+	Get_Frame							:	BOOL	;
+	Vision_OK							:	BOOL	;
+	Get_Frame_Time						:	LREAL	;
+//Vision Data
+	Data_Read_X							:	LREAL	;
+	Data_Read_X_Vector					:	LREAL	;
+	Data_Read_Y							:	LREAL	;
+	Data_Read_Y_Vector					:	LREAL	;
+	Data_Read_R							:	LREAL	;
+	Data_Read_R_Vector					:	LREAL	;
+	Press_Speed							:	LREAL	;
+	Travel_Distance						:	LREAL	;
+	Target_X_Real_Position_Data			:	LREAL	;
+
+//Vision_Status
+	Vision_Alarm_Code					:	INT		;
+
+	Axis02_Calibration_Position_Data		: LREAL;
+	Axis03_Calibration_Position_Data		: LREAL;
+	Axis05_Calibration_Position_Data		: LREAL;
+	Axis02_Calibration_Position_Data_Old	: LREAL;
+	Axis03_Calibration_Position_Data_Old	: LREAL;
+	Axis05_Calibration_Position_Data_Old	: LREAL;
+	Axis02_Tool_Change_Position_Data: LREAL;
+	Axis03_Tool_Change_Position_Data: LREAL;
+	Axis04_Tool_Change_Position_Data: LREAL;
+END_VAR
+VAR_GLOBAL PERSISTENT
+//Type
+	Vision_Product_Type					:	INT		;
+	PLC_Product_Type					:	INT		;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

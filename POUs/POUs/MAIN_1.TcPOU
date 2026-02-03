@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="MAIN_1" Id="{0143168f-bc29-4df3-a416-c4765796282e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN_1
+VAR
+	bTest: BOOL;
+	Ax1_FB_HomeBeforeMoveAX8000: FB_HomeBeforeMoveAX8000;
+END_VAR
+VAR PERSISTENT
+	nTest : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//Axis01
+Axis01_Alarm();
+Axis01_Auto();
+Axis01_Interlock();
+Axis01_Manual();
+Axis01_Product_Position();
+Axis01_Status();
+//Axis02
+Axis02_Alarm();
+Axis02_Auto();
+Axis02_Interlock();
+Axis02_Manual();
+Axis02_Status();
+//Axis03
+Axis03_Alarm();
+Axis03_Auto();
+Axis03_Interlock();
+Axis03_Manual();
+Axis03_Status();
+//Axis04
+Axis04_Alarm();
+Axis04_Auto();
+Axis04_Interlock();
+Axis04_Manual();
+Axis04_Status();
+//Axis05
+Axis05_Alarm();
+Axis05_Auto();
+Axis05_Interlock();
+Axis05_Manual();
+Axis05_Status();
+
+
+Alarm();
+Axis01_Command();
+Axis02_X();
+Axis03_Y();
+Axis04_Z();
+Axis05_Rotation();
+Conveyor();
+HMI();
+System();
+Vision();
+Main_Step();
+Calibration();
+HOME_MOVE();
+]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN_1">
+      <LineId Id="114" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="121" Count="3" />
+      <LineId Id="126" Count="1" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="129" Count="2" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="136" Count="2" />
+      <LineId Id="140" Count="1" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="143" Count="2" />
+      <LineId Id="147" Count="1" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="23" Count="2" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="105" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

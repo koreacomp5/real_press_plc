@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Vision_ST" Id="{eed554c4-fc1a-4baf-9f60-2c5a21e38ff5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Vision_ST
+VAR
+    trigVisionOk              : R_TRIG;
+    All_Initial_Trig          : R_TRIG;
+    Vision_Start_Sensor_Trig  : R_TRIG;
+    Press_Start_Trig          : R_TRIG;
+    
+    Always_ON                 : BOOL := TRUE;
+    Always_OFF                : BOOL := FALSE;
+    
+    TON_1                     : TON;
+    Time_Data_1               : LREAL;
+    DATA                      : LREAL;
+    
+    CCTV                      : TON;
+    Work_End_Position_Set     : BOOL;
+    GVL_Vision_ON_Delay_Time  : INT;
+    test005                   : BOOL;
+    Vision_Delay              : BOOL;
+    Vision_Delay_TM           : TON;
+    test01                    : BOOL;
+    Vision_NG_Timer           : TON;
+    Vision_OFF_Dealy          : TON;
+    TON_0                     : TON;
+END_VAR
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ===== 상승엣지 검출 =====
+trigVisionOk(CLK := GVL_Vision_Step.Data_Initial);
+All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
+Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Press_Start_Trig(CLK := GVL_Motion_Step.Press_Start);
+
+// ===== 런 1, 2: HeartBeat 타이머 (래더 원본: 런 2만 유효) =====
+TON_1(IN := NOT GVL_Vision.HaertBeat, PT := T#5S);
+
+// ===== 런 3: Vision 데이터 초기화 =====
+IF trigVisionOk.Q OR GVL_System.All_Initial THEN
+    GVL_Vision.Data_Read_X := 0;
+    GVL_Vision.Data_Read_Y := 0;
+    GVL_Vision.Data_Read_R := 0;
+    GVL_Vision.Vision_OK := FALSE;
+    GVL_Vision.Vision_NG := FALSE;
+END_IF
+
+// ===== 런 4: 속도/프레임 초기화 =====
+IF GVL_Motion_Step.Axis02_Stop OR GVL_System.All_Initial THEN
+    GVL_Vision.Average_Speed := 0;
+    GVL_Vision.TotalSpeed := 0;
+    GVL_Vision.FrameCount := 0;
+    GVL_Vision.Get_Frame := 0;
+    DATA := 0;
+END_IF
+
+// ===== 런 5: 시간 계산 =====
+Time_Data_1 := ULINT_TO_LREAL(GVL_System.Time_Data) * 1E-7;
+IF GVL_Vision.Data_Copy_Comp THEN
+    GVL_Vision.Moving_Time := Time_Data_1 - GVL_Vision.Get_Frame_Time;
+END_IF
+
+// ===== 런 6: Target X 위치 계산 =====
+IF GVL_Vision.Data_Copy_Comp THEN
+    DATA := GVL_Encoder.Real_Position - GVL_Vision.Encoder_DATA01[GVL_Vision.DATA_COUNT];
+    GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - DATA;
+END_IF
+
+// ===== 런 7: 버퍼 초기화 [P] =====
+IF All_Initial_Trig.Q THEN
+    GVL_Vision.Data_Buffer_X := 0;
+    GVL_Vision.Data_Buffer_Y := 0;
+    GVL_Vision.Data_Buffer_R := 0;
+    GVL_Vision.Data_Copy_Comp := FALSE;
+    GVL_Vision.Get_Frame_Time := 0;
+    GVL_Vision.Target_X_Real_Position_Data := 0;
+    GVL_Vision.Press_Speed := 0;
+    GVL_Vision.Travel_Distance := 0;
+    GVL_Vision.Moving_Time := 0;
+    Time_Data_1 := 0;
+END_IF
+
+// ===== 런 8: Read 데이터 초기화 =====
+IF GVL_Vision_Step.Data_Initial THEN
+    GVL_Vision.Data_Read_X := 0;
+    GVL_Vision.Data_Read_Y := 0;
+    GVL_Vision.Data_Read_R := 0;
+END_IF
+
+// ===== 런 9: Vision_Delay 리셋 =====
+IF GVL_System.All_Initial THEN
+    Vision_Delay := FALSE;
+END_IF
+
+// ===== 런 10: Vision_Delay 셋 =====
+IF GVL_Vision.Run AND GVL_System.Auto_Mode AND Vision_Start_Sensor_Trig.Q THEN
+    GVL_Vision.Encoder_DATA03 := GVL_Encoder.Real_Position;
+    Vision_Delay := TRUE;
+ELSIF NOT GVL_Vision.Run THEN
+    Vision_Delay := TRUE;
+END_IF
+
+// ===== 런 11: Vision_Delay 셋 (Add Case) [P] =====
+//IF GVL_System.Add_Case_Mode AND GVL_System.Auto_Mode AND Vision_Start_Sensor_Trig.Q THEN
+IF GVL_System.Add_Case_Mode  AND Vision_Start_Sensor_Trig.Q THEN
+    GVL_Vision.Encoder_DATA03 := GVL_Encoder.Real_Position;
+    Vision_Delay := TRUE;
+END_IF
+
+// ===== 런 12: Vision_Delay 리셋 (타이머) =====
+IF Vision_OFF_Dealy.Q THEN
+    GVL_Vision.Encoder_DATA03 := 0;
+    Vision_Delay := FALSE;
+END_IF
+
+// ===== 런 13: Vision_Delay 타이머 =====
+Vision_Delay_TM(IN := Vision_Delay, PT := T#0.3S);
+
+// ===== 런 14: 비활성 =====
+
+// ===== 런 15-16: Cam_Trigger =====
+IF Vision_Delay AND 
+   ((GVL_Vision.Encoder_DATA03 + GVL_Vision.Cam_Trigger_Length) <= GVL_Encoder.Real_Position) THEN
+    GVL_Vision.Cam_Trigger := TRUE;
+ELSIF (NOT GVL_System.Auto_Mode) AND GVL_System.Manual_Cam_Trigger THEN
+    GVL_Vision.Cam_Trigger := TRUE;
+ELSE
+    GVL_Vision.Cam_Trigger := FALSE;
+END_IF
+
+// ===== 런 17: Vision OFF Delay 타이머 =====
+Vision_OFF_Dealy(IN := GVL_Vision.Cam_Trigger, PT := T#0.05S);
+
+// ===== 런 18: Vision Light ON =====
+GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON;
+
+// ===== 런 19: Data_Check 셋 =====
+IF GVL_System.Auto_Mode AND GVL_Vision.Cam_Trigger THEN
+    GVL_Vision.Data_Check := TRUE;
+END_IF
+
+// ===== 이미지4: Data_Check 리셋 (NE) =====
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Read_X <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Read_Y <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Read_R <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Buffer_X <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Buffer_Y <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+IF GVL_System.Auto_Mode AND (GVL_Vision.Data_Buffer_R <> 0) THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+
+// ===== 이미지4: Data_Check 리셋 [P] =====
+IF GVL_System.Auto_Mode AND Press_Start_Trig.Q THEN
+    GVL_Vision.Data_Check := FALSE;
+END_IF
+
+// ===== 런 19 (이미지3): NG 타이머 =====
+Vision_NG_Timer(IN := GVL_Vision.Data_Check, PT := T#1S);
+GVL_Vision.Data_Empty := Vision_NG_Timer.Q;]]></ST>
+    </Implementation>
+    <LineIds Name="Vision_ST">
+      <LineId Id="1311" Count="74" />
+      <LineId Id="1476" Count="0" />
+      <LineId Id="1386" Count="62" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,797 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis05_Interlock" Id="{baa90fa8-6f44-44e8-8b25-6afdea8e539e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis05_Interlock
+VAR
+//System_Bit
+	Always_ON	:	BOOL	:=TRUE	;//상시 ON 
+	Always_OFF	:	BOOL	:=FALSE	;//상시 OFF
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <NWL>
+        <XmlArchive>
+          <Data>
+            <o xml:space="preserve" t="NWLImplementationObject">
+              <v n="NetworkListComment">""</v>
+              <v n="DefaultViewMode">"Ld"</v>
+              <l2 n="NetworkList" cet="Network">
+                <o>
+                  <v n="ILActive">false</v>
+                  <v n="FBDValid">false</v>
+                  <v n="ILValid">false</v>
+                  <l2 n="ILLines" />
+                  <v n="Comment">""</v>
+                  <v n="Title">"+++++++++++++++++++++++++++++++++++++++++++Motor Position Move"</v>
+                  <v n="Label">""</v>
+                  <v n="OutCommented">false</v>
+                  <l2 n="NetworkItems" cet="BoxTreeBox">
+                    <o>
+                      <v n="BoxType">"EXECUTE"</v>
+                      <o n="Instance" t="Operand">
+                        <n n="Operand" />
+                        <v n="Type">""</v>
+                        <v n="Comment">""</v>
+                        <v n="SymbolComment">""</v>
+                        <v n="Address">""</v>
+                        <o n="Flags" t="Flags">
+                          <v n="Flags">0</v>
+                          <v n="Fixed">false</v>
+                          <v n="Extensible">false</v>
+                        </o>
+                        <v n="LValue">false</v>
+                        <v n="Boolean">false</v>
+                        <v n="IsInstance">true</v>
+                        <v n="Id">6924L</v>
+                      </o>
+                      <o n="OutputItems" t="OutputItemList">
+                        <l2 n="OutputItems">
+                          <n />
+                        </l2>
+                      </o>
+                      <o n="Flags" t="Flags">
+                        <v n="Flags">0</v>
+                        <v n="Fixed">true</v>
+                        <v n="Extensible">false</v>
+                      </o>
+                      <n n="InputFlags" />
+                      <l2 n="InputItems" cet="BoxTreeBox">
+                        <o>
+                          <v n="BoxType">"EXECUTE"</v>
+                          <o n="Instance" t="Operand">
+                            <n n="Operand" />
+                            <v n="Type">""</v>
+                            <v n="Comment">""</v>
+                            <v n="SymbolComment">""</v>
+                            <v n="Address">""</v>
+                            <o n="Flags" t="Flags">
+                              <v n="Flags">0</v>
+                              <v n="Fixed">false</v>
+                              <v n="Extensible">false</v>
+                            </o>
+                            <v n="LValue">false</v>
+                            <v n="Boolean">false</v>
+                            <v n="IsInstance">true</v>
+                            <v n="Id">6902L</v>
+                          </o>
+                          <o n="OutputItems" t="OutputItemList">
+                            <l2 n="OutputItems">
+                              <n />
+                            </l2>
+                          </o>
+                          <o n="Flags" t="Flags">
+                            <v n="Flags">0</v>
+                            <v n="Fixed">true</v>
+                            <v n="Extensible">false</v>
+                          </o>
+                          <n n="InputFlags" />
+                          <l2 n="InputItems" cet="BoxTreeOperand">
+                            <o>
+                              <o n="Operand" t="Operand">
+                                <v n="Operand">"Always_On"</v>
+                                <v n="Type">"BOOL"</v>
+                                <v n="Comment">""</v>
+                                <v n="SymbolComment">""</v>
+                                <v n="Address">""</v>
+                                <o n="Flags" t="Flags">
+                                  <v n="Flags">0</v>
+                                  <v n="Fixed">false</v>
+                                  <v n="Extensible">false</v>
+                                </o>
+                                <v n="LValue">false</v>
+                                <v n="Boolean">false</v>
+                                <v n="IsInstance">false</v>
+                                <v n="Id">6385L</v>
+                              </o>
+                              <v n="Id">6384L</v>
+                            </o>
+                          </l2>
+                          <o n="InputParam" t="ParamList">
+                            <l2 n="Names" cet="String">
+                              <v>EN</v>
+                            </l2>
+                            <l2 n="Types" cet="String">
+                              <v>BOOL</v>
+                            </l2>
+                          </o>
+                          <o n="OutputParam" t="ParamList">
+                            <l2 n="Names" cet="String">
+                              <v>ENO</v>
+                            </l2>
+                            <l2 n="Types" cet="String">
+                              <v>BOOL</v>
+                            </l2>
+                          </o>
+                          <v n="CallType" t="Operator">None</v>
+                          <v n="EN">true</v>
+                          <v n="ENO">true</v>
+                          <o n="STSnippet" t="STSnippet">
+                            <o n="STSnippet" t="STImplementationObject">
+                              <o n="TextDocument" t="TextDocument">
+                                <a n="TextLines" cet="TextLine">
+                                  <o>
+                                    <v n="Id">6936L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"IF (GVL_Axis02.Real_Position &lt;= 55.0) THEN"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6937L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    GVL_Axis05.Home_Pos_Interlock := TRUE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6938L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"ELSE"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6939L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    IF (GVL_Axis05.Home_Position_Data &gt;= -10) AND "</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6940L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"       (GVL_Axis05.Home_Position_Data &lt;= 10) THEN"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6941L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"        GVL_Axis05.Home_Pos_Interlock := TRUE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6942L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    ELSE "</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6943L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"       GVL_Axis05.Home_Pos_Interlock := FALSE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6944L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    END_IF;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6883L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"END_IF;"</v>
+                                  </o>
+                                </a>
+                              </o>
+                            </o>
+                            <v n="Id">6912L</v>
+                          </o>
+                          <v n="ContainsExtensibleInputs">false</v>
+                          <v n="ProvidesSTSnippet">true</v>
+                          <v n="Id">6913L</v>
+                        </o>
+                      </l2>
+                      <o n="InputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>EN</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <o n="OutputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>ENO</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <v n="CallType" t="Operator">None</v>
+                      <v n="EN">true</v>
+                      <v n="ENO">true</v>
+                      <o n="STSnippet" t="STSnippet">
+                        <o n="STSnippet" t="STImplementationObject">
+                          <o n="TextDocument" t="TextDocument">
+                            <a n="TextLines" cet="TextLine">
+                              <o>
+                                <v n="Id">6925L</v>
+                                <n n="Tag" />
+                                <v n="Text">"IF (GVL_Axis02.Real_Position &lt;= 55.0) THEN"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6926L</v>
+                                <n n="Tag" />
+                                <v n="Text">"    GVL_Axis05.Wait_Pos_Interlock := TRUE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6927L</v>
+                                <n n="Tag" />
+                                <v n="Text">"ELSE"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6928L</v>
+                                <n n="Tag" />
+                                <v n="Text">"    IF (GVL_Axis05.Wait_Position_Data &gt;= -10) AND "</v>
+                              </o>
+                              <o>
+                                <v n="Id">6929L</v>
+                                <n n="Tag" />
+                                <v n="Text">"       (GVL_Axis05.Wait_Position_Data &lt;= 10) THEN"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6930L</v>
+                                <n n="Tag" />
+                                <v n="Text">"        GVL_Axis05.Wait_Pos_Interlock := TRUE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6931L</v>
+                                <n n="Tag" />
+                                <v n="Text">"    ELSE "</v>
+                              </o>
+                              <o>
+                                <v n="Id">6932L</v>
+                                <n n="Tag" />
+                                <v n="Text">"       GVL_Axis05.Wait_Pos_Interlock := FALSE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6933L</v>
+                                <n n="Tag" />
+                                <v n="Text">"    END_IF;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6914L</v>
+                                <n n="Tag" />
+                                <v n="Text">"END_IF;"</v>
+                              </o>
+                            </a>
+                          </o>
+                        </o>
+                        <v n="Id">6934L</v>
+                      </o>
+                      <v n="ContainsExtensibleInputs">false</v>
+                      <v n="ProvidesSTSnippet">true</v>
+                      <v n="Id">6935L</v>
+                    </o>
+                  </l2>
+                  <l2 n="Connectors" />
+                  <v n="Id">13L</v>
+                </o>
+                <o>
+                  <v n="ILActive">false</v>
+                  <v n="FBDValid">false</v>
+                  <v n="ILValid">false</v>
+                  <l2 n="ILLines" />
+                  <v n="Comment">""</v>
+                  <v n="Title">""</v>
+                  <v n="Label">""</v>
+                  <v n="OutCommented">false</v>
+                  <l2 n="NetworkItems" cet="BoxTreeBox">
+                    <o>
+                      <v n="BoxType">"EXECUTE"</v>
+                      <o n="Instance" t="Operand">
+                        <n n="Operand" />
+                        <v n="Type">""</v>
+                        <v n="Comment">""</v>
+                        <v n="SymbolComment">""</v>
+                        <v n="Address">""</v>
+                        <o n="Flags" t="Flags">
+                          <v n="Flags">0</v>
+                          <v n="Fixed">false</v>
+                          <v n="Extensible">false</v>
+                        </o>
+                        <v n="LValue">false</v>
+                        <v n="Boolean">false</v>
+                        <v n="IsInstance">true</v>
+                        <v n="Id">6711L</v>
+                      </o>
+                      <o n="OutputItems" t="OutputItemList">
+                        <l2 n="OutputItems">
+                          <n />
+                        </l2>
+                      </o>
+                      <o n="Flags" t="Flags">
+                        <v n="Flags">0</v>
+                        <v n="Fixed">true</v>
+                        <v n="Extensible">false</v>
+                      </o>
+                      <n n="InputFlags" />
+                      <l2 n="InputItems" cet="BoxTreeBox">
+                        <o>
+                          <v n="BoxType">"EXECUTE"</v>
+                          <o n="Instance" t="Operand">
+                            <n n="Operand" />
+                            <v n="Type">""</v>
+                            <v n="Comment">""</v>
+                            <v n="SymbolComment">""</v>
+                            <v n="Address">""</v>
+                            <o n="Flags" t="Flags">
+                              <v n="Flags">0</v>
+                              <v n="Fixed">false</v>
+                              <v n="Extensible">false</v>
+                            </o>
+                            <v n="LValue">false</v>
+                            <v n="Boolean">false</v>
+                            <v n="IsInstance">true</v>
+                            <v n="Id">6996L</v>
+                          </o>
+                          <o n="OutputItems" t="OutputItemList">
+                            <l2 n="OutputItems">
+                              <n />
+                            </l2>
+                          </o>
+                          <o n="Flags" t="Flags">
+                            <v n="Flags">0</v>
+                            <v n="Fixed">true</v>
+                            <v n="Extensible">false</v>
+                          </o>
+                          <n n="InputFlags" />
+                          <l2 n="InputItems" cet="BoxTreeBox">
+                            <o>
+                              <v n="BoxType">"EXECUTE"</v>
+                              <o n="Instance" t="Operand">
+                                <n n="Operand" />
+                                <v n="Type">""</v>
+                                <v n="Comment">""</v>
+                                <v n="SymbolComment">""</v>
+                                <v n="Address">""</v>
+                                <o n="Flags" t="Flags">
+                                  <v n="Flags">0</v>
+                                  <v n="Fixed">false</v>
+                                  <v n="Extensible">false</v>
+                                </o>
+                                <v n="LValue">false</v>
+                                <v n="Boolean">false</v>
+                                <v n="IsInstance">true</v>
+                                <v n="Id">6969L</v>
+                              </o>
+                              <o n="OutputItems" t="OutputItemList">
+                                <l2 n="OutputItems">
+                                  <n />
+                                </l2>
+                              </o>
+                              <o n="Flags" t="Flags">
+                                <v n="Flags">0</v>
+                                <v n="Fixed">true</v>
+                                <v n="Extensible">false</v>
+                              </o>
+                              <n n="InputFlags" />
+                              <l2 n="InputItems" cet="BoxTreeOperand">
+                                <o>
+                                  <o n="Operand" t="Operand">
+                                    <v n="Operand">"Always_On"</v>
+                                    <v n="Type">"BOOL"</v>
+                                    <v n="Comment">""</v>
+                                    <v n="SymbolComment">""</v>
+                                    <v n="Address">""</v>
+                                    <o n="Flags" t="Flags">
+                                      <v n="Flags">0</v>
+                                      <v n="Fixed">false</v>
+                                      <v n="Extensible">false</v>
+                                    </o>
+                                    <v n="LValue">false</v>
+                                    <v n="Boolean">false</v>
+                                    <v n="IsInstance">false</v>
+                                    <v n="Id">6421L</v>
+                                  </o>
+                                  <v n="Id">6420L</v>
+                                </o>
+                              </l2>
+                              <o n="InputParam" t="ParamList">
+                                <l2 n="Names" cet="String">
+                                  <v>EN</v>
+                                </l2>
+                                <l2 n="Types" cet="String">
+                                  <v>BOOL</v>
+                                </l2>
+                              </o>
+                              <o n="OutputParam" t="ParamList">
+                                <l2 n="Names" cet="String">
+                                  <v>ENO</v>
+                                </l2>
+                                <l2 n="Types" cet="String">
+                                  <v>BOOL</v>
+                                </l2>
+                              </o>
+                              <v n="CallType" t="Operator">None</v>
+                              <v n="EN">true</v>
+                              <v n="ENO">true</v>
+                              <o n="STSnippet" t="STSnippet">
+                                <o n="STSnippet" t="STImplementationObject">
+                                  <o n="TextDocument" t="TextDocument">
+                                    <a n="TextLines" cet="TextLine">
+                                      <o>
+                                        <v n="Id">7008L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"IF (GVL_Axis02.Real_Position &lt;= 55.0) THEN"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7009L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"    GVL_Axis05.Target_Pos_Interlock := TRUE;"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7010L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"ELSE"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7011L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"    IF (GVL_Axis05.Target_Position_Data &gt;= -10) AND "</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7012L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"       (GVL_Axis05.Target_Position_Data &lt;= 10) THEN"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7013L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"        GVL_Axis05.Target_Pos_Interlock := TRUE;"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7014L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"    ELSE "</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7015L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"       GVL_Axis05.Target_Pos_Interlock := FALSE;"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">7016L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"    END_IF;"</v>
+                                      </o>
+                                      <o>
+                                        <v n="Id">6945L</v>
+                                        <n n="Tag" />
+                                        <v n="Text">"END_IF;"</v>
+                                      </o>
+                                    </a>
+                                  </o>
+                                </o>
+                                <v n="Id">6979L</v>
+                              </o>
+                              <v n="ContainsExtensibleInputs">false</v>
+                              <v n="ProvidesSTSnippet">true</v>
+                              <v n="Id">6980L</v>
+                            </o>
+                          </l2>
+                          <o n="InputParam" t="ParamList">
+                            <l2 n="Names" cet="String">
+                              <v>EN</v>
+                            </l2>
+                            <l2 n="Types" cet="String">
+                              <v>BOOL</v>
+                            </l2>
+                          </o>
+                          <o n="OutputParam" t="ParamList">
+                            <l2 n="Names" cet="String">
+                              <v>ENO</v>
+                            </l2>
+                            <l2 n="Types" cet="String">
+                              <v>BOOL</v>
+                            </l2>
+                          </o>
+                          <v n="CallType" t="Operator">None</v>
+                          <v n="EN">true</v>
+                          <v n="ENO">true</v>
+                          <o n="STSnippet" t="STSnippet">
+                            <o n="STSnippet" t="STImplementationObject">
+                              <o n="TextDocument" t="TextDocument">
+                                <a n="TextLines" cet="TextLine">
+                                  <o>
+                                    <v n="Id">6997L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"IF (GVL_Axis02.Real_Position &lt;= 55.0) THEN"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6998L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    GVL_Axis05.Work_End_Pos_Interlock := TRUE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6999L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"ELSE"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7000L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    IF (GVL_Axis05.Work_End_Position_Data &gt;= -10) AND "</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7001L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"       (GVL_Axis05.Work_End_Position_Data &lt;= 10) THEN"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7002L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"        GVL_Axis05.Work_End_Pos_Interlock := TRUE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7003L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    ELSE "</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7004L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"       GVL_Axis05.Work_End_Pos_Interlock := FALSE;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">7005L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"    END_IF;"</v>
+                                  </o>
+                                  <o>
+                                    <v n="Id">6981L</v>
+                                    <n n="Tag" />
+                                    <v n="Text">"END_IF;"</v>
+                                  </o>
+                                </a>
+                              </o>
+                            </o>
+                            <v n="Id">7006L</v>
+                          </o>
+                          <v n="ContainsExtensibleInputs">false</v>
+                          <v n="ProvidesSTSnippet">true</v>
+                          <v n="Id">7007L</v>
+                        </o>
+                      </l2>
+                      <o n="InputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>EN</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <o n="OutputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>ENO</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <v n="CallType" t="Operator">None</v>
+                      <v n="EN">true</v>
+                      <v n="ENO">true</v>
+                      <o n="STSnippet" t="STSnippet">
+                        <o n="STSnippet" t="STImplementationObject">
+                          <o n="TextDocument" t="TextDocument">
+                            <a n="TextLines" cet="TextLine">
+                              <o>
+                                <v n="Id">6991L</v>
+                                <n n="Tag" />
+                                <v n="Text">"IF (GVL_Axis05.Home_Pos_Interlock = TRUE) AND (GVL_Axis05.Wait_Pos_Interlock = TRUE) AND (GVL_Axis05.Target_Pos_Interlock = TRUE) AND (GVL_Axis05.Work_End_POs_Interlock = TRUE) THEN"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6992L</v>
+                                <n n="Tag" />
+                                <v n="Text">"	GVL_Axis05.Interlock := TRUE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6993L</v>
+                                <n n="Tag" />
+                                <v n="Text">"	ELSE"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6994L</v>
+                                <n n="Tag" />
+                                <v n="Text">"	GVL_Axis05.Interlock := FALSE;	"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6995L</v>
+                                <n n="Tag" />
+                                <v n="Text">""</v>
+                              </o>
+                              <o>
+                                <v n="Id">6705L</v>
+                                <n n="Tag" />
+                                <v n="Text">"END_IF"</v>
+                              </o>
+                            </a>
+                          </o>
+                        </o>
+                        <v n="Id">6717L</v>
+                      </o>
+                      <v n="ContainsExtensibleInputs">false</v>
+                      <v n="ProvidesSTSnippet">true</v>
+                      <v n="Id">6718L</v>
+                    </o>
+                  </l2>
+                  <l2 n="Connectors" />
+                  <v n="Id">6386L</v>
+                </o>
+                <o>
+                  <v n="ILActive">false</v>
+                  <v n="FBDValid">false</v>
+                  <v n="ILValid">false</v>
+                  <l2 n="ILLines" />
+                  <v n="Comment">""</v>
+                  <v n="Title">""</v>
+                  <v n="Label">""</v>
+                  <v n="OutCommented">false</v>
+                  <l2 n="NetworkItems" cet="BoxTreeBox">
+                    <o>
+                      <v n="BoxType">"EXECUTE"</v>
+                      <o n="Instance" t="Operand">
+                        <n n="Operand" />
+                        <v n="Type">""</v>
+                        <v n="Comment">""</v>
+                        <v n="SymbolComment">""</v>
+                        <v n="Address">""</v>
+                        <o n="Flags" t="Flags">
+                          <v n="Flags">0</v>
+                          <v n="Fixed">false</v>
+                          <v n="Extensible">false</v>
+                        </o>
+                        <v n="LValue">false</v>
+                        <v n="Boolean">false</v>
+                        <v n="IsInstance">true</v>
+                        <v n="Id">6657L</v>
+                      </o>
+                      <o n="OutputItems" t="OutputItemList">
+                        <l2 n="OutputItems">
+                          <n />
+                        </l2>
+                      </o>
+                      <o n="Flags" t="Flags">
+                        <v n="Flags">0</v>
+                        <v n="Fixed">true</v>
+                        <v n="Extensible">false</v>
+                      </o>
+                      <n n="InputFlags" />
+                      <l2 n="InputItems" cet="BoxTreeOperand">
+                        <o>
+                          <o n="Operand" t="Operand">
+                            <v n="Operand">"Always_On"</v>
+                            <v n="Type">"BOOL"</v>
+                            <v n="Comment">""</v>
+                            <v n="SymbolComment">""</v>
+                            <v n="Address">""</v>
+                            <o n="Flags" t="Flags">
+                              <v n="Flags">0</v>
+                              <v n="Fixed">false</v>
+                              <v n="Extensible">false</v>
+                            </o>
+                            <v n="LValue">false</v>
+                            <v n="Boolean">false</v>
+                            <v n="IsInstance">false</v>
+                            <v n="Id">6432L</v>
+                          </o>
+                          <v n="Id">6431L</v>
+                        </o>
+                      </l2>
+                      <o n="InputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>EN</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <o n="OutputParam" t="ParamList">
+                        <l2 n="Names" cet="String">
+                          <v>ENO</v>
+                        </l2>
+                        <l2 n="Types" cet="String">
+                          <v>BOOL</v>
+                        </l2>
+                      </o>
+                      <v n="CallType" t="Operator">None</v>
+                      <v n="EN">true</v>
+                      <v n="ENO">true</v>
+                      <o n="STSnippet" t="STSnippet">
+                        <o n="STSnippet" t="STImplementationObject">
+                          <o n="TextDocument" t="TextDocument">
+                            <a n="TextLines" cet="TextLine">
+                              <o>
+                                <v n="Id">6658L</v>
+                                <n n="Tag" />
+                                <v n="Text">"IF (GVL_Axis02.Real_Position &lt;= 55.0) THEN"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6659L</v>
+                                <n n="Tag" />
+                                <v n="Text">"    GVL_Axis05.Home_ORG_Interlock := TRUE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6660L</v>
+                                <n n="Tag" />
+                                <v n="Text">"ELSE"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6661L</v>
+                                <n n="Tag" />
+                                <v n="Text">"       GVL_Axis05.Home_ORG_Interlock := FALSE;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6662L</v>
+                                <n n="Tag" />
+                                <v n="Text">"END_IF;"</v>
+                              </o>
+                              <o>
+                                <v n="Id">6651L</v>
+                                <n n="Tag" />
+                                <v n="Text">""</v>
+                              </o>
+                            </a>
+                          </o>
+                        </o>
+                        <v n="Id">6663L</v>
+                      </o>
+                      <v n="ContainsExtensibleInputs">false</v>
+                      <v n="ProvidesSTSnippet">true</v>
+                      <v n="Id">6664L</v>
+                    </o>
+                  </l2>
+                  <l2 n="Connectors" />
+                  <v n="Id">6422L</v>
+                </o>
+                <o>
+                  <v n="ILActive">false</v>
+                  <v n="FBDValid">false</v>
+                  <v n="ILValid">false</v>
+                  <l2 n="ILLines" />
+                  <v n="Comment">""</v>
+                  <v n="Title">""</v>
+                  <v n="Label">""</v>
+                  <v n="OutCommented">false</v>
+                  <l2 n="NetworkItems" />
+                  <l2 n="Connectors" />
+                  <v n="Id">5L</v>
+                </o>
+              </l2>
+              <v n="BranchCounter">0</v>
+              <v n="ValidIds">true</v>
+            </o>
+          </Data>
+          <TypeList>
+            <Type n="Boolean">System.Boolean</Type>
+            <Type n="BoxTreeBox">{acfc6f68-8e3a-4af5-bf81-3dd512095a46}</Type>
+            <Type n="BoxTreeOperand">{9de7f100-1b87-424c-a62e-45b0cfc85ed2}</Type>
+            <Type n="Flags">{668066f2-6069-46b3-8962-8db8d13d7db2}</Type>
+            <Type n="Int32">System.Int32</Type>
+            <Type n="Int64">System.Int64</Type>
+            <Type n="Network">{d9a99d73-b633-47db-b876-a752acb25871}</Type>
+            <Type n="NWLImplementationObject">{25e509de-33d4-4447-93f8-c9e4ea381c8b}</Type>
+            <Type n="Operand">{c9b2f165-48a2-4a45-8326-3952d8a3d708}</Type>
+            <Type n="Operator">{bffb3c53-f105-4e85-aba2-e30df579d75f}</Type>
+            <Type n="OutputItemList">{f40d3e09-c02c-4522-a88c-dac23558cfc4}</Type>
+            <Type n="ParamList">{71496971-9e0c-4677-a832-b9583b571130}</Type>
+            <Type n="STImplementationObject">{3b83b776-fb25-43b8-99f2-3c507c9143fc}</Type>
+            <Type n="String">System.String</Type>
+            <Type n="STSnippet">{b2131366-6917-4304-87a9-64c0585560a8}</Type>
+            <Type n="TextDocument">{f3878285-8e4f-490b-bb1b-9acbb7eb04db}</Type>
+            <Type n="TextLine">{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}</Type>
+          </TypeList>
+        </XmlArchive>
+      </NWL>
+    </Implementation>
+  </POU>
+</TcPlcObject>

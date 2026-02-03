@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Vision_Step_ST" Id="{e69f656f-4fbc-4941-803f-6789390cb7a5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Vision_Step_ST
+VAR
+    Always_ON        : BOOL := TRUE;
+    Always_OFF       : BOOL := FALSE;
+    TEST01           : BOOL;
+    Test0002         : INT;
+    Data_Copy        : R_TRIG;
+    Vision_OK_Trig   : R_TRIG;  // 추가
+    Vision_NG_Trig   : R_TRIG;  // 추가
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//rising edge detection
+Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
+Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
+
+// Status 조건
+GVL_Vision_Step.Status := 
+    ((GVL_Vision.Run AND GVL_System.Auto_Mode) OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
+    AND GVL_System.Safety_ALL_OK;
+
+// 코일 초기화
+GVL_Vision_Step.Vision_Start := FALSE;
+GVL_Vision_Step.Wait_Vision_OK := FALSE;
+GVL_Vision_Step.Data_Copy := FALSE;
+GVL_Vision_Step.Data_Copy_Check := FALSE;
+GVL_Vision_Step.Data_Initial := FALSE;
+
+// State Machine
+IF GVL_Vision_Step.Status THEN
+
+    IF GVL_Vision_Step.NO = 0 THEN
+        GVL_Vision_Step.Vision_Start := TRUE;
+        IF (Vision_OK_Trig.Q OR Vision_NG_Trig.Q) AND GVL_Vision.Run THEN
+            GVL_Vision_Step.NO := 1;
+        END_IF
+    END_IF
+
+    IF GVL_Vision_Step.NO = 1 THEN
+        IF NOT GVL_Vision.Data_Copy_Comp THEN
+            GVL_Vision_Step.Wait_Vision_OK := TRUE;
+            IF Vision_OK_Trig.Q THEN
+                GVL_Vision_Step.NO := 5;
+            ELSIF Vision_NG_Trig.Q THEN
+                GVL_Vision_Step.NO := 15;
+            END_IF
+        END_IF
+    END_IF
+
+    IF GVL_Vision_Step.NO = 5 THEN
+        GVL_Vision_Step.Data_Copy := TRUE;
+        IF (GVL_Vision.Data_Read_X = GVL_Vision.Data_Buffer_X)
+           AND (GVL_Vision.Data_Read_Y = GVL_Vision.Data_Buffer_Y)
+           AND (GVL_Vision.Data_Read_R = GVL_Vision.Data_Buffer_R) THEN
+            GVL_Vision_Step.NO := 10;
+        END_IF
+    END_IF
+
+    IF GVL_Vision_Step.NO = 10 THEN
+        IF GVL_Vision.Data_Copy_Comp THEN
+            GVL_Vision_Step.Data_Copy_Check := TRUE;
+            GVL_Vision_Step.NO := 15;
+        END_IF
+    END_IF
+
+    IF GVL_Vision_Step.NO = 15 THEN
+        GVL_Vision_Step.Data_Initial := TRUE;
+        Test0002 := Test0002 + 1;
+        GVL_Vision_Step.NO := 0;
+    END_IF
+
+END_IF
+
+// Data Copy 처리
+Data_Copy(CLK := GVL_Vision_Step.Data_Copy);
+IF Data_Copy.Q THEN
+    GVL_Vision.Data_Buffer_X := GVL_Vision.Data_Read_X;
+    GVL_Vision.Data_Buffer_Y := GVL_Vision.Data_Read_Y;
+    GVL_Vision.Data_Buffer_R := GVL_Vision.Data_Read_R;
+    GVL_Vision.Data_Copy_Comp := TRUE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="Vision_Step_ST">
+      <LineId Id="393" Count="67" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

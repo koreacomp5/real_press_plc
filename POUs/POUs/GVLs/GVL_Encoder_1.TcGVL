@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Encoder_1" Id="{3dc3f55e-b079-4b3f-ad01-980d9b77bca2}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Enc_Axis: AXIS_REF;
+	Conveyor_Speed :	LREAL	;
+	Encoder_Value	:	LREAL	;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

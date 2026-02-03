@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis02_Interlock_ST" Id="{fbc3052e-123d-4413-80ce-78f17c119607}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis02_Interlock_ST
+VAR
+//System_Bit
+	Always_ON	:	BOOL	:=TRUE	;//상시 ON 
+	Always_OFF	:	BOOL	:=FALSE	;//상시 OFF
+	AxisRangeOK      : BOOL;
+    AxisRangeOK_NoZ  : BOOL;  // Axis04 없는 버전
+END_VAR
+
+VAR CONSTANT
+    AXIS02_SAFE_LIMIT : REAL := 55.0;
+END_VAR
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+// 공통 조건 계산
+AxisRangeOK := (GVL_Axis01.Real_Position > 1.1) AND(GVL_Axis04.Real_Position < 19.1) AND (GVL_Axis03.Real_Position >= 3.4) AND
+ 			   (GVL_Axis03.Real_Position <= 48) AND(GVL_Axis05.Real_Position >= -10.0) AND (GVL_Axis05.Real_Position <= 10.0);
+
+AxisRangeOK_NoZ := (GVL_Axis01.Real_Position > 1.1) AND (GVL_Axis03.Real_Position >= 3.4) AND (GVL_Axis03.Real_Position <= 48) AND
+                   (GVL_Axis05.Real_Position >= -10.0) AND (GVL_Axis05.Real_Position <= 10.0);
+
+// Home Position 인터락
+IF GVL_Axis02.Home_Position_Data > AXIS02_SAFE_LIMIT THEN
+    GVL_Axis02.Home_Pos_Interlock := AxisRangeOK;
+ELSE
+    GVL_Axis02.Home_Pos_Interlock := TRUE;
+END_IF
+
+// Wait Position 인터락
+IF GVL_Axis02.Wait_Position_Data > AXIS02_SAFE_LIMIT THEN
+    GVL_Axis02.Wait_Pos_Interlock := AxisRangeOK;
+ELSE
+    GVL_Axis02.Wait_Pos_Interlock := TRUE;
+END_IF
+
+// Target Position 인터락
+IF GVL_Axis02.Target_Position_Data > AXIS02_SAFE_LIMIT THEN
+    GVL_Axis02.Target_Pos_Interlock := AxisRangeOK;
+ELSE
+    GVL_Axis02.Target_Pos_Interlock := TRUE;
+END_IF
+
+// Work End Position 인터락
+IF GVL_Axis02.Work_End_Position_Data > AXIS02_SAFE_LIMIT THEN
+    GVL_Axis02.Work_End_Pos_Interlock := AxisRangeOK_NoZ;
+ELSE
+    GVL_Axis02.Work_End_Pos_Interlock := TRUE;
+END_IF
+
+// Home ORG 인터락
+IF GVL_Axis02.Real_Position > AXIS02_SAFE_LIMIT THEN
+    GVL_Axis02.Home_ORG_Interlock := TRUE;
+ELSIF GVL_Axis03.Home_Position OR((GVL_Axis03.Real_Position >= 3.4) AND (GVL_Axis03.Real_Position <= 30.0)) THEN
+    GVL_Axis02.Home_ORG_Interlock := TRUE;
+ELSE
+    GVL_Axis02.Home_ORG_Interlock := FALSE;
+END_IF
+
+// Calibration Position 인터락
+GVL_Calibration.Calibration_Pos_Interlock := (GVL_Axis01.Real_Position > 33) AND (GVL_Axis03.Real_Position >= -6) AND (GVL_Axis03.Real_Position <= 40);
+// 최종 인터락 판정
+GVL_Axis02.Interlock := GVL_Axis02.Home_Pos_Interlock AND GVL_Axis02.Wait_Pos_Interlock AND GVL_Axis02.Target_Pos_Interlock AND GVL_Axis02.Work_End_Pos_Interlock;]]></ST>
+    </Implementation>
+    <LineIds Name="Axis02_Interlock_ST">
+      <LineId Id="235" Count="2" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="241" Count="1" />
+      <LineId Id="244" Count="33" />
+      <LineId Id="279" Count="6" />
+      <LineId Id="290" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

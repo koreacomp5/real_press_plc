@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Test_Step" Id="{98f89b2b-df1d-4e90-a21d-43de50e303fa}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Test_Mode	: 	BOOL	;
+	NO			:	INT		;
+	Motor_Vision_Data_Apply: BOOL;
+	Press_Start: BOOL;
+	Vision_Data_Set: BOOL;
+	Press_Wait: BOOL;
+	Axis04_Wait_Position: BOOL;
+	Axis02_Work_End_Wait: BOOL;
+	Axis02_Wait_Pos_Moving: BOOL;
+	All_Motor_Wait_Pos_Moving: BOOL;
+	All_Intial: BOOL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

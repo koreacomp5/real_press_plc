@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis02_Acceleration_Offset" Id="{e2dc0172-a91e-4d44-b54a-a638e823cf46}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis02_Acceleration_Offset
+VAR
+    // -----------------------------------------------------------
+    // A. 모션 및 Jerk 설정 값
+    // -----------------------------------------------------------
+    lr_VelMax_Setting    : LREAL := 500.0;     // 모터의 최고 속도 (V_Max, mm/s)
+    lr_TimeAtMax_Setting : LREAL := 0.1;       // 최고 속도까지의 가속 시간 (T_Max, s)
+    lr_Jerk_Setting      : LREAL := 223346.0;  // ⭐️ Jerk 설정 값 (mm/s^3) ⭐️
+    
+    // -----------------------------------------------------------
+    // B. 계산 중간 변수 및 결과
+    // -----------------------------------------------------------
+    lr_CalculatedAccel   : LREAL;             // 계산된 등가속도 (A)
+    lr_Jerk_Time         : LREAL;             // Jerk 구간 시간 (Tj)
+    lr_Time_Output_S     : LREAL;             // Jerk 반영 총 가속 시간 (T_accel, S)
+    lr_Accel_Distance_S  : LREAL;             // Jerk 반영 순수 가속 이동 거리 (D_accel, S)
+    lr_Dist_Conv_Travel  : LREAL;             // T_accel, S 동안 컨베이어 이동 거리 (D_conv)
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ⭐️ 이 코드는 Jerk를 포함한 오차 거리를 매 사이클 계산합니다 (상시 실행). ⭐️
+
+// 1. 등가속도(A) 계산: A = V_Max / T_Max
+IF lr_TimeAtMax_Setting > 0.0 THEN
+    lr_CalculatedAccel := lr_VelMax_Setting / lr_TimeAtMax_Setting;
+ELSE
+    lr_CalculatedAccel := 0.0;
+END_IF
+
+// 2. Jerk 시간 (Tj) 계산
+IF lr_Jerk_Setting <= 0.0 OR lr_CalculatedAccel <= 0.0 THEN
+    lr_Jerk_Time := 0.0;
+ELSE
+    // Tj = A / J
+    lr_Jerk_Time := lr_CalculatedAccel / lr_Jerk_Setting;
+END_IF
+
+// 3. Jerk가 반영된 총 가속 시간 (T_accel, S) 및 이동 거리 (D_accel, S) 계산
+IF lr_CalculatedAccel > 0.0 THEN
+    
+    // 3-1. 총 가속 시간: T_accel, S = (V_target / A) + T_j
+    lr_Time_Output_S := (GVL_Encoder.Real_Velocity / lr_CalculatedAccel) + lr_Jerk_Time;
+
+    // 3-2. 순수 가속 이동 거리 (S-Curve 보정 공식 적용)
+    // D_accel, S = (V_target^2 / 2A) + A * Tj^2
+    lr_Accel_Distance_S := (GVL_Encoder.Real_Velocity * GVL_Encoder.Real_Velocity) / (2.0 * lr_CalculatedAccel) 
+                         + (lr_CalculatedAccel * lr_Jerk_Time * lr_Jerk_Time);
+ELSE
+    lr_Time_Output_S := 0.0;
+    lr_Accel_Distance_S := 0.0;
+END_IF
+
+// 4. T_accel, S 동안 컨베이어 이동 거리 계산 (D_conv = V_conv * T_accel, S)
+lr_Dist_Conv_Travel := GVL_Encoder.Real_Velocity * lr_Time_Output_S;
+
+// 5. 오차 거리 (D_error) 계산 및 GVL 변수에 저장
+// D_error = D_conv - D_accel, S
+GVL_Axis02.Accel_Offset := lr_Dist_Conv_Travel - lr_Accel_Distance_S;]]></ST>
+    </Implementation>
+    <LineIds Name="Axis02_Acceleration_Offset">
+      <LineId Id="230" Count="36" />
+      <LineId Id="123" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

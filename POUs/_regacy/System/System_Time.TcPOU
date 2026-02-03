@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="System_Time" Id="{c1745ddb-e23a-4e49-a256-e1b685177728}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM System_Time
+VAR
+    fbLocalTime : FB_LocalSystemTime; (* FB 인스턴스 *)
+    bEnable     : BOOL := TRUE;       (* FB 활성화 *)
+    dwCycleTime : DWORD := 1;         (* 시간 동기화 주기 (1초) *)
+    stCurrentTime : TIMESTRUCT;       (* 출력 시간 구조체 *)
+    bValid      : BOOL;
+    sTimeString : STRING;             (* 최종 출력 문자열 *)
+	uliSystemTimeMs:  ULINT;
+	F_GetCurTaskCycleTime: INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+// PLC 사이클마다 실행됩니다.
+//uliSystemTimeMs := F_GetSystemTime();
+
+//GVL_System.Time_Data := uliSystemTimeMs;
+]]></ST>
+    </Implementation>
+    <LineIds Name="System_Time">
+      <LineId Id="999" Count="0" />
+      <LineId Id="1031" Count="1" />
+      <LineId Id="1052" Count="0" />
+      <LineId Id="555" Count="0" />
+      <LineId Id="1145" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
