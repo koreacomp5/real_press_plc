@@ -18,6 +18,7 @@ VAR
 	Lamp_Test_Yellow			:	BOOL	;
 	Lamp_Test_Red				:	BOOL	;
 	Lamp_Test_Buzzer			:	BOOL	;
+	Manual_Ready : BOOL;
 	
 	Buzzer						:	BOOL	;
 	
@@ -922,7 +923,7 @@ END_VAR
                   <v n="OutCommented">false</v>
                   <l2 n="NetworkItems">
                     <o t="BoxTreeDemux">
-                      <v n="VarId">1</v>
+                      <v n="VarId">6</v>
                       <o n="Input" t="BoxTreeBox">
                         <v n="BoxType">"OR"</v>
                         <o n="Instance" t="Operand">
@@ -1163,7 +1164,7 @@ END_VAR
                         <v n="Extensible">false</v>
                       </o>
                       <o n="RValue" t="BoxTreeDemux">
-                        <v n="VarId">1</v>
+                        <v n="VarId">6</v>
                         <n n="Input" />
                         <v n="Id">5504L</v>
                       </o>
@@ -1196,7 +1197,7 @@ END_VAR
                         <v n="Extensible">false</v>
                       </o>
                       <o n="RValue" t="BoxTreeDemux">
-                        <v n="VarId">1</v>
+                        <v n="VarId">6</v>
                         <n n="Input" />
                         <v n="Id">5505L</v>
                       </o>
@@ -4965,7 +4966,7 @@ END_VAR
                   <v n="Id">5338L</v>
                 </o>
               </l2>
-              <v n="BranchCounter">2</v>
+              <v n="BranchCounter">7</v>
               <v n="ValidIds">true</v>
             </o>
           </Data>
