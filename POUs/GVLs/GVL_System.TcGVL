@@ -59,6 +59,7 @@ VAR_GLOBAL
 	Test_Data_Read_Comp			: 	BOOL	;
 	Test_Continues				: 	BOOL	;
 	Calibration_Mode			: 	BOOL	;
+	AutoOffset_Mode				: 	BOOL 	:= FALSE;
 	Tool_Change_Mode			: 	BOOL	;
 	Tool_Change_Move_PB			: 	BOOL	;	
 //홈동작 

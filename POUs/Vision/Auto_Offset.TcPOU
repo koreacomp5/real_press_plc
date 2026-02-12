@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Auto_Offset" Id="{fa86c5aa-9960-43c1-8225-a0b2d29f79be}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Auto_Offset
+VAR
+	fiber_fall_trig : F_TRIG;         // Vision_Start_Sensor의 falling edge 감지
+	cam_trig_pulse     : TP;
+	offset_mode_rising_trig : R_TRIG;
+	encoder_start: LREAL;
+	encoder_end : LREAL;
+	moving_distance : LREAL;
+	trig: BOOL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+When auto-offset mode
+Falling edge detected
+Cam trigger pulse
+*)
+
+offset_mode_rising_trig(CLK := GVL_System.AutoOffset_Mode);
+IF offset_mode_rising_trig.Q THEN
+	encoder_start := GVL_Encoder.Real_Position; 
+END_IF
+
+
+fiber_fall_trig(CLK := GVL_System.Vision_Start_Sensor);
+IF GVL_System.AutoOffset_Mode THEN
+	IF fiber_fall_trig.Q THEN
+	encoder_end:= GVL_Encoder.Real_Position;
+	moving_distance := encoder_end - encoder_start;
+	trig := TRUE;
+	END_IF
+	cam_trig_pulse(IN := trig, PT := T#100MS);
+	GVL_Vision.Cam_Trigger := cam_trig_pulse.Q;
+	trig := FALSE;
+END_IF
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="Auto_Offset">
+      <LineId Id="48" Count="4" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="82" Count="1" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="34" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
