@@ -192,6 +192,9 @@
     <Compile Include="POUs\System\System.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Vision\Auto_Offset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Vision\Move_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>

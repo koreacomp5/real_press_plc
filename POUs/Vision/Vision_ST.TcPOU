@@ -31,6 +31,12 @@ VAR
 	Data_Initial : BOOL;
 	Status: BOOL;
 	NO: UINT;
+	
+	Vision_off_F_Trig : F_TRIG;         // Vision_Start_Sensor의 falling edge 감지
+    Vision_off_300ms_TOF : TOF;         // 마지막 감지 이후 300ms 동안 Q=TRUE(차단
+ 
+	
+
 END_VAR
 
 
@@ -47,9 +53,12 @@ Press_Start_Trig(CLK := GVL_Motion_Step.Press_Start);
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
 
+Vision_off_F_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Vision_off_300ms_TOF(IN := Vision_off_F_Trig.Q, PT := T#300MS); 
+
 
 // ===== 런 10: Fiber_Sener_Sensing=====
-IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Vision_Start_Sensor_Trig.Q THEN
+IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Vision_Start_Sensor_Trig.Q AND NOT Vision_off_300ms_TOF.Q THEN
     GVL_Vision.Encoder_DATA03 := GVL_Encoder.Real_Position;
     Vision_Delay := TRUE;
 END_IF
@@ -58,7 +67,7 @@ END_IF
 GVL_Vision.Cam_Trigger := Vision_Delay OR (NOT GVL_System.Auto_Mode AND GVL_System.Manual_Cam_Trigger);
 
 // ===== 런 15: Vision OFF Delay 타이머 =====
-Vision_OFF_Delay(IN := GVL_Vision.Cam_Trigger, PT := T#0.05S);
+Vision_OFF_Delay(IN := GVL_Vision.Cam_Trigger, PT := T#0.1S);
 IF Vision_OFF_Delay.Q THEN  Vision_Delay := FALSE; END_IF	
 
 // ===== 런 6: Target X 위치 계산 =====
@@ -227,7 +236,9 @@ GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON
       <LineId Id="1531" Count="0" />
       <LineId Id="1898" Count="0" />
       <LineId Id="1523" Count="0" />
-      <LineId Id="1367" Count="0" />
+      <LineId Id="1940" Count="1" />
+      <LineId Id="1995" Count="0" />
+      <LineId Id="1949" Count="0" />
       <LineId Id="1573" Count="0" />
       <LineId Id="1575" Count="4" />
       <LineId Id="1766" Count="1" />
