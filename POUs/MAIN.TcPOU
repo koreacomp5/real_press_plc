@@ -41,6 +41,7 @@ Axis04_Manual();
 Axis04_Auto();
 Axis04_Alarm();
 Axis04_Set_Work_End_Speed();
+Axis04_Torque_Check();
 
 //Axis05
 Axis05_Interlock_ST();
@@ -115,6 +116,7 @@ Auto_Offset();
       <LineId Id="303" Count="2" />
       <LineId Id="134" Count="0" />
       <LineId Id="319" Count="0" />
+      <LineId Id="361" Count="0" />
       <LineId Id="295" Count="0" />
       <LineId Id="139" Count="0" />
       <LineId Id="296" Count="0" />

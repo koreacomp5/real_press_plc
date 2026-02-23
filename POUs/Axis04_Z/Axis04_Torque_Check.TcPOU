@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis04_Torque_Check" Id="{19dccb64-b5cc-471c-994c-535a54dfd2e9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis04_Torque_Check
+VAR
+	fbHalt : MC_Halt;
+	bHaltRequest: BOOL;
+	torque_limit : LREAL :=150;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+
+IF GVL_Axis04.Torque_Data > torque_limit AND Axis04_Command.Axis04_Work_End_Move.Busy THEN
+    bHaltRequest := TRUE;
+END_IF
+
+
+fbHalt(
+    Axis    := Axis04_Command.Axis04,
+    Execute := bHaltRequest,
+	Deceleration := 10000.0,
+);
+
+IF fbHalt.Done THEN
+    bHaltRequest := FALSE;
+	GVL_Axis04.Work_End_Position := TRUE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="Axis04_Torque_Check">
+      <LineId Id="107" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="108" Count="15" />
+      <LineId Id="6" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -83,6 +83,7 @@ M_Home_ORG: BOOL;
 	Work_End_Speed: LREAL;
 	
 	Torque_Data : LREAL;
+	Torque_Check_Height : LREAL;
 	M_Cleaning_Move: BOOL;
 	Cleaning_Move_Position: BOOL;
 END_VAR

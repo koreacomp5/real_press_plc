@@ -66,6 +66,7 @@ IF GVL_Motion_Step.Status THEN
         END_IF
         IF GVL_Axis04.Work_End_Position THEN
             GVL_Motion_Step.No := 20;
+			GVL_Axis04.Work_End_Position := FALSE;
         END_IF
     END_IF
 
@@ -123,7 +124,9 @@ END_IF
       <LineId Id="370" Count="2" />
       <LineId Id="374" Count="3" />
       <LineId Id="379" Count="3" />
-      <LineId Id="384" Count="36" />
+      <LineId Id="384" Count="20" />
+      <LineId Id="491" Count="0" />
+      <LineId Id="405" Count="15" />
       <LineId Id="475" Count="0" />
       <LineId Id="480" Count="1" />
       <LineId Id="479" Count="0" />

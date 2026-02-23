@@ -9,7 +9,7 @@ VAR
 	encoder_start: LREAL;
 	encoder_end : LREAL;
 	moving_distance : LREAL;
-	trig: BOOL;
+	trig: BOOL := false;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
@@ -20,48 +20,41 @@ Cam trigger pulse
 
 offset_mode_rising_trig(CLK := GVL_System.AutoOffset_Mode);
 IF offset_mode_rising_trig.Q THEN
-	encoder_start := GVL_Encoder.Real_Position; 
+    encoder_start := GVL_Encoder.Real_Position; 
+    trig := FALSE;
+    GVL_Vision.Cam_Trigger := FALSE;
 END_IF
+
 
 
 fiber_fall_trig(CLK := GVL_System.Vision_Start_Sensor);
-IF GVL_System.AutoOffset_Mode THEN
-	IF fiber_fall_trig.Q THEN
-	encoder_end:= GVL_Encoder.Real_Position;
-	moving_distance := encoder_end - encoder_start;
-	trig := TRUE;
-	END_IF
+IF GVL_System.AutoOffset_Mode THEN 
 	cam_trig_pulse(IN := trig, PT := T#100MS);
 	GVL_Vision.Cam_Trigger := cam_trig_pulse.Q;
 	trig := FALSE;
+	IF fiber_fall_trig.Q THEN
+		encoder_end := GVL_Encoder.Real_Position;
+		moving_distance := encoder_end - encoder_start;
+		trig := TRUE;
+	END_IF
 END_IF
-
-
 
 ]]></ST>
     </Implementation>
     <LineIds Name="Auto_Offset">
       <LineId Id="48" Count="4" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="67" Count="0" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="68" Count="0" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="82" Count="1" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="74" Count="1" />
-      <LineId Id="54" Count="0" />
+      <LineId Id="85" Count="4" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="121" Count="2" />
+      <LineId Id="92" Count="2" />
+      <LineId Id="136" Count="2" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="134" Count="0" />
       <LineId Id="34" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
