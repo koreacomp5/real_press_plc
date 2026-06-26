@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Mastering" Id="{6e70edb0-906e-463b-bfbd-3cb34e22ea11}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Mastering
 VAR
@@ -22,12 +22,14 @@ VAR
 	Data04_Trig :	R_TRIG;
 	
 	Mastering_Step : INT;
+
+    fbCamPulse : TP; 
+    bCamTrigTP : BOOL;
+
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
-
-(* ============================================================
+      <ST><![CDATA[(* ============================================================
    프로그램명 : Mastering - Case Length Check
    설  명    : 비전 마스터링을 위한 케이스 길이 측정 및 카메라 트리거 제어
                컨베이어 구동 → 케이스 길이 측정 → 카메라 촬영 위치 이동
@@ -44,6 +46,12 @@ Data01_Trig(CLK := GVL_Mastering.Case_Length_Check_Start);
 
 Data03_Trig(CLK := GVL_Mastering.Back_Trig);
 Data04_Trig(CLK := Data03 >= 13);
+
+fbCamPulse(IN := bCamTrigTP, PT := T#200MS);
+GVL_Mastering.Cam_Trig := fbCamPulse.Q;
+bCamTrigTP := FALSE;
+
+
 (* ──────────────────────────────────────────────────────────────
    [연산값 계산]
    moving_Data : 비전 마스터링 X 위치와 Axis02 대기 위치의 차이 (이동 여유량)
@@ -160,7 +168,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
         IF Data03 >= 0 THEN
 
             (* 카메라 트리거 활성화 및 촬영 위치 저장 *)
-            GVL_Mastering.Cam_Trig := TRUE;
+            bCamTrigTP := TRUE;
 		
             //IF Data04_Trig.Q THEN
 				Data04                 := GVL_Encoder.Real_Position;
@@ -179,16 +187,9 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
     (* ── STEP 15 : 비전 결과 수신 대기 + 정지 조건 판단 ── *)
     IF Mastering_Step = 15 THEN
 
-        GVL_Mastering.Cam_Trig := FALSE;
-
         (* 촬영 시점으로부터의 이동 거리 및 여유 거리 계산 *)
         Data05 := GVL_Encoder.Real_Position - Data04;  (* 촬영 후 이동량 *)
         Data06 := moving_Data - Data05;                 (* 목표 대비 잔여 이동량 *)
-
-        (* 비전 결과값이 수신된 경우 카메라 트리거 OFF *)
-        IF GVL_Mastering.mastering_vision_x <> 0 THEN
-            GVL_Mastering.Cam_Trig := FALSE;
-        END_IF
 
         (* 잔여 이동량이 음수(목표 초과)이고 비전 결과 수신 완료 시 정지 *)
         IF Data06 <= 0 AND GVL_Mastering.mastering_vision_x <> 0 THEN
@@ -222,7 +223,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
             (* 기준점 도달(역방향 이동 완료) 시 재촬영 수행 *)
             IF Data10 >= Moving_Data THEN
 
-                GVL_Mastering.Cam_Trig          := TRUE;
+				bCamTrigTP := TRUE;
 
                 (* 카메라 트리거 + 실제 촬영 완료 시 위치 저장 후 다음 스텝으로 *)
                 IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
@@ -241,10 +242,9 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
     END_IF
 
-
     (* ── STEP 25 : 마스터링 완료 처리 ── *)
     IF Mastering_Step = 25 THEN
-
+		
         (* 마스터링 관련 플래그 및 스텝 초기화 → 시퀀스 종료 *)
         GVL_Mastering.Case_Length_Check_Start := FALSE;
         GVL_Mastering.Cam_Trig                := FALSE;
@@ -258,24 +258,32 @@ END_IF  (* Case_Length_Check_Start *)
 ]]></ST>
     </Implementation>
     <LineIds Name="Mastering">
-      <LineId Id="198" Count="14" />
+      <LineId Id="200" Count="12" />
       <LineId Id="502" Count="1" />
       <LineId Id="213" Count="74" />
       <LineId Id="504" Count="2" />
       <LineId Id="288" Count="40" />
       <LineId Id="513" Count="0" />
       <LineId Id="516" Count="1" />
-      <LineId Id="329" Count="29" />
-      <LineId Id="550" Count="1" />
+      <LineId Id="329" Count="19" />
+      <LineId Id="351" Count="3" />
+      <LineId Id="551" Count="0" />
       <LineId Id="359" Count="20" />
       <LineId Id="509" Count="0" />
       <LineId Id="380" Count="4" />
       <LineId Id="388" Count="2" />
       <LineId Id="518" Count="0" />
-      <LineId Id="525" Count="2" />
+      <LineId Id="526" Count="0" />
+      <LineId Id="586" Count="0" />
+      <LineId Id="527" Count="0" />
       <LineId Id="552" Count="1" />
-      <LineId Id="392" Count="22" />
+      <LineId Id="392" Count="13" />
+      <LineId Id="407" Count="2" />
+      <LineId Id="589" Count="0" />
+      <LineId Id="411" Count="3" />
       <LineId Id="197" Count="0" />
+      <LineId Id="554" Count="4" />
+      <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
