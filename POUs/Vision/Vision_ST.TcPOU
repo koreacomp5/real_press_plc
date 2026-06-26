@@ -26,15 +26,8 @@ Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
 Vision_off_100ms_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
 
-IF Vision_off_100ms_TON.Q THEN
-    Trig_ON := TRUE;
-END_IF
-
-IF Trig_ON THEN
-    IF GVL_Vision.Cam_Trigger THEN
-        Trig_ON := FALSE;
-    END_IF
-END_IF
+// Fiber 센서 100ms 유지 시 무장(SET), 캠트리거 발생 시 해제(RESET) — 리셋 우선 SR 래치
+Trig_ON := (Trig_ON OR Vision_off_100ms_TON.Q) AND NOT GVL_Vision.Cam_Trigger;
 
 // ===== 런 10: Fiber_Sener_Sensing=====
 IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Fiber_Sensor_Trig.Q AND Trig_ON THEN
