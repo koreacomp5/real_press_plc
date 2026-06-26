@@ -22,7 +22,6 @@ END_VAR
 	GVL_Vision.Press_Speed					:=	0;
 	GVL_Vision.Travel_Distance				:=	0;
 	GVL_Vision.Moving_Time					:=	0;
-	GVL_System.Press_Start_Sensor_S 		:=	0;
 	GVL_Axis02.Work_Offset					:=	0;
 	GVL_Main_Step.NO 						:=	0;
 	GVL_Motion_Step.No						:=	0;

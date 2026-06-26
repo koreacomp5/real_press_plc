@@ -65,7 +65,6 @@ VAR_GLOBAL
 
 
 	Data_Check: BOOL;
-	Vision_Start_Sensor: BOOL;
 
 
 END_VAR

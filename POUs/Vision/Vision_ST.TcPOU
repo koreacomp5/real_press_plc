@@ -4,7 +4,7 @@
     <Declaration><![CDATA[PROGRAM Vision_ST
 VAR
     All_Initial_Trig         : R_TRIG;
-    Vision_Start_Sensor_Trig : F_TRIG;
+    Fiber_Sensor_Trig : F_TRIG;
     Vision_OK_Trig           : R_TRIG;  // 추가
     Vision_NG_Trig           : R_TRIG;  // 추가
     Cam_Trigger_Trig         : R_TRIG;  // 카메라 트리거 상승엣지 (위치 캡처용)
@@ -21,10 +21,10 @@ END_VAR
       <ST><![CDATA[GVL_Vision.HaertBeat_ON := FALSE;
 GVL_Vision.HaertBeat_OFF := FALSE;
 All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
-Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Fiber_Sensor_Trig(CLK := GVL_System.Fiber_Sensor);
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
-Vision_off_100ms_TON(IN := GVL_System.Vision_Start_Sensor, PT := T#100MS);
+Vision_off_100ms_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
 
 IF Vision_off_100ms_TON.Q THEN
     Trig_ON := TRUE;
@@ -37,7 +37,7 @@ IF Trig_ON THEN
 END_IF
 
 // ===== 런 10: Fiber_Sener_Sensing=====
-IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Vision_Start_Sensor_Trig.Q AND Trig_ON THEN
+IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Fiber_Sensor_Trig.Q AND Trig_ON THEN
     GVL_Vision.Sensor_Trig_Pos := GVL_Encoder.Real_Position;
     Vision_Delay := TRUE;
 END_IF

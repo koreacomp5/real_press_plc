@@ -19,9 +19,7 @@ VAR_GLOBAL
 	EMO_SWitch		AT%I*		:	BOOL	;
 
 //Fiber Sensor
-	Vision_Start_Sensor	AT%I*	:	BOOL	;
-	Press_Start_Sensor	AT%I*	:	BOOL	;
-	Press_End_Sensor	AT%I*	:	BOOL	;
+	Fiber_Sensor	AT%I*	:	BOOL	;
 
 //System_Door_Sensor
 	Door_Open		AT%I*		:	BOOL	;
@@ -92,7 +90,6 @@ VAR_GLOBAL
 	Time_Data 					: 	ULINT	; 
 	
 	Offset_Value				:	LREAL	;
-	Press_Start_Sensor_S		:	BOOL	;
 	Task_Offset					:	LREAL	;
 	Task_Time					:	LREAL	;
 
