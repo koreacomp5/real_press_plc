@@ -17,6 +17,7 @@ VAR
 
 	fbCamPulse : TP;
 	bCamTrigTP : BOOL;
+	Settle_Timer : TON;             // STEP20 재촬영 전 정지·정착 대기 타이머
 
 END_VAR
 ]]></Declaration>
@@ -78,6 +79,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
         Forward_Distance    := 0;
         Shot_Position       := 0;
         Back_Distance       := 0;
+        Settle_Timer(IN := FALSE, PT := T#2S);   (* 정착 타이머 리셋 *)
 
         (* GVL 마스터링 변수 초기화 *)
         GVL_Mastering.mastering_vision_x  := 0;
@@ -166,26 +168,37 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
         IF GVL_Axis04.Mastering_Position THEN
 
-            (* Axis04 마스터링 위치 도달 후 컨베이어 역방향 저속 구동 *)
-            GVL_Conv.HMI_Motor_CCW       := TRUE;
-            GVL_Conv.HMI_Motor_Low_Speed := TRUE;
-
             (* 대기위치(Back 시작점) 대비 역방향(CCW=엔코더 감소) 복귀 이동량 계산 *)
             Back_Distance := Back_Start_Position - GVL_Encoder.Real_Position;
-            (* 대기위치~비전 X 거리(Move_Margin)만큼 복귀 시 재촬영 수행 *)
-            IF Back_Distance >= Move_Margin THEN
 
-                bCamTrigTP := TRUE;
+            IF Back_Distance < Move_Margin THEN
 
-                (* 카메라 트리거 + 실제 촬영 완료 시 위치 저장 후 다음 스텝으로 *)
-                IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
-                    GVL_Mastering.Reshot_Position   := GVL_Encoder.Real_Position;
-                    GVL_Axis04.M_Mastering_Pos_Move := FALSE;
-                    GVL_Conv.HMI_Motor_CCW          := FALSE;
-                    GVL_Conv.HMI_Motor_Low_Speed    := FALSE;
-                    GVL_Conv.Conv_Motor_CCW         := FALSE;
-                    GVL_Conv.Conv_Motor_Low_Speed   := FALSE;
-                    Mastering_Step := 25;
+                (* 목표 미도달 → 컨베이어 역방향(CCW) 저속 복귀 주행 *)
+                GVL_Conv.HMI_Motor_CCW       := TRUE;
+                GVL_Conv.HMI_Motor_Low_Speed := TRUE;
+
+            ELSE
+
+                (* 목표(Move_Margin) 도달 → 컨베이어 정지 *)
+                GVL_Conv.HMI_Motor_CCW        := FALSE;
+                GVL_Conv.HMI_Motor_Low_Speed  := FALSE;
+                GVL_Conv.Conv_Motor_CCW       := FALSE;
+                GVL_Conv.Conv_Motor_Low_Speed := FALSE;
+
+                (* 정지·정착 대기 2초 (제동/관성 정착 + 모션블러 제거) *)
+                Settle_Timer(IN := TRUE, PT := T#2S);
+
+                (* 정착 완료 후 카메라 트리거 → 노출=래치=정지위치 일치 *)
+                IF Settle_Timer.Q THEN
+
+                    bCamTrigTP := TRUE;
+
+                    IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
+                        GVL_Mastering.Reshot_Position   := GVL_Encoder.Real_Position;
+                        GVL_Axis04.M_Mastering_Pos_Move := FALSE;
+                        Mastering_Step := 25;
+                    END_IF
+
                 END_IF
 
             END_IF
