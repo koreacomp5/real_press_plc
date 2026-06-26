@@ -10,7 +10,6 @@ VAR_GLOBAL
 	Back_Shot_Position			:	LREAL;
 	Reshot_Position				:	LREAL;
 	Back_Trig					: 	BOOL;
-	//Axis02_Wait_POS_COM: BOOL;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

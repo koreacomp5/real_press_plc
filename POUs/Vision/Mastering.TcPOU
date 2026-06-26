@@ -1,65 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Mastering" Id="{6e70edb0-906e-463b-bfbd-3cb34e22ea11}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Mastering
 VAR
-	Move_Margin : LREAL;            // 이동 여유량 (mastering_vision_x - Axis02 대기위치)
+	Move_Margin : LREAL;            // 목표 복귀거리 (mastering_vision_x - Axis02 대기위치), STEP20 진입 시 래치
 	Start_Position : LREAL;         // 마스터링 시작 기준 위치
 	Sensor_Position : LREAL;        // 비전 시작 센서 감지 위치
 	Forward_Distance : LREAL;       // 시작점 기준 정방향 이동거리
 	Shot_Position : LREAL;          // 정방향 카메라 촬영 위치
-	After_Shot_Distance : LREAL;    // 촬영 후 이동량
-	Remain_Distance : LREAL;        // 목표 대비 잔여 이동량
-	Back_Distance : LREAL;          // Back 단계 이동량
-	Mastering_Offset : LREAL;       // 마스터링 전후 촬영 위치차 (결과)
-	Shot_Gap : LREAL;               // 정방향 촬영 - Back 촬영 위치차 (모니터링)
-	Back_Remain : LREAL;            // Back 단계 잔여 이동량 (모니터링)
+	Back_Distance : LREAL;          // Back 단계 이동량 (대기위치 기준 CCW 복귀량)
+	Back_Start_Position : LREAL;    // Back 단계 시작(대기) 시점의 컨베이어 위치
 	Vision_Start_Sensor_Trig  : R_TRIG;
-	Start_Trig	:	R_TRIG;
-	Start_Pos_Trig :	R_TRIG;
-	Sensor_Pos_Trig :	R_TRIG;
-	Back_Pos_Trig :	R_TRIG;
-	Move13_Trig :	R_TRIG;
+	Back_Pos_Trig : R_TRIG;
 
 	Mastering_Step : INT;
 
-    fbCamPulse : TP;
-    bCamTrigTP : BOOL;
+	fbCamPulse : TP;
+	bCamTrigTP : BOOL;
 
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(* ============================================================
-   프로그램명 : Mastering - Case Length Check
-   설  명    : 비전 마스터링을 위한 케이스 길이 측정 및 카메라 트리거 제어
-               컨베이어 구동 → 케이스 길이 측정 → 카메라 촬영 위치 이동
-               → 재촬영(Back) → 마스터링 완료
-   ============================================================ *)
-
-(* ──────────────────────────────────────────────────────────────
-   [트리거 업데이트]
-   상승 엣지 감지: 비전 시작 센서, 케이스 길이 체크 시작, Back 트리거
-   ────────────────────────────────────────────────────────────── *)
+      <ST><![CDATA[
 Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
-Start_Trig(CLK := GVL_Mastering.Case_Length_Check_Start);
-Start_Pos_Trig(CLK := GVL_Mastering.Case_Length_Check_Start);
-
 Back_Pos_Trig(CLK := GVL_Mastering.Back_Trig);
-Move13_Trig(CLK := Forward_Distance >= 13);
 
 fbCamPulse(IN := bCamTrigTP, PT := T#200MS);
 GVL_Mastering.Cam_Trig := fbCamPulse.Q;
 bCamTrigTP := FALSE;
 
 
-(* ──────────────────────────────────────────────────────────────
-   [연산값 계산]
-   Move_Margin      : 비전 마스터링 X 위치와 Axis02 대기 위치의 차이 (이동 여유량)
-   Mastering_Offset : 마스터링 전후 비전 촬영 위치 차이값 (결과 비교용)
-   ────────────────────────────────────────────────────────────── *)
-Move_Margin      := GVL_Mastering.mastering_vision_x - GVL_Axis02.Wait_Position_Data;
-Mastering_Offset := GVL_Mastering.Back_Shot_Position - GVL_Mastering.Reshot_Position;
-Shot_Gap		 := Shot_Position - GVL_Mastering.Back_Shot_Position;
 (* ──────────────────────────────────────────────────────────────
    [Back 트리거 처리]
    Back 트리거 상승 엣지 발생 시 현재 엔코더 위치를 Back_Shot_Position에 저장
@@ -79,10 +49,7 @@ IF GVL_System.All_Initial AND GVL_System.Manual_Mode THEN
     Sensor_Position     := 0;
     Forward_Distance    := 0;
     Shot_Position       := 0;
-    After_Shot_Distance := 0;
-    Remain_Distance     := 0;
     Back_Distance       := 0;
-    Move_Margin         := 0;
 
     (* GVL 마스터링 변수 초기화 *)
     GVL_Mastering.mastering_vision_x      := 0;
@@ -91,9 +58,8 @@ IF GVL_System.All_Initial AND GVL_System.Manual_Mode THEN
     GVL_Mastering.Back_Trig               := FALSE;
     GVL_Mastering.Case_Length             := 0;
 
-    (* 스텝 및 축 명령 초기화 *)
+    (* 스텝 초기화 *)
     Mastering_Step                        := 0;
-    //GVL_Mastering.Axis02_Wait_POS_COM     := FALSE;
 
 END_IF
 
@@ -108,28 +74,21 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
     IF  Mastering_Step = 0 THEN
 
         (* 내부 변수 초기화 *)
-        Move_Margin         := 0;
-        Start_Position      := 0;
         Sensor_Position     := 0;
         Forward_Distance    := 0;
         Shot_Position       := 0;
-        After_Shot_Distance := 0;
-        Remain_Distance     := 0;
         Back_Distance       := 0;
 
         (* GVL 마스터링 변수 초기화 *)
         GVL_Mastering.mastering_vision_x  := 0;
-        //GVL_Mastering.Axis02_ait_POS_COM := FALSE;
         GVL_Mastering.Cam_Trig            := FALSE;
         GVL_Mastering.Back_Trig           := FALSE;
         GVL_Mastering.Case_Length         := 0;
 
         (* 케이스 시작 위치 기록 후 컨베이어 역방향(CCW) 저속 구동 시작 *)
-		IF Start_Pos_Trig.Q THEN
-			   Start_Position             := GVL_Encoder.Real_Position;
-		END_IF
+        Start_Position := GVL_Encoder.Real_Position;
 
-        GVL_Conv.HMI_Motor_CCW      := TRUE;
+        GVL_Conv.HMI_Motor_CCW       := TRUE;
         GVL_Conv.HMI_Motor_Low_Speed := TRUE;
 
         Mastering_Step := 5;
@@ -141,7 +100,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
     IF Vision_Start_Sensor_Trig.Q AND Mastering_Step = 5 THEN
 
         (* 센서 감지 시점의 엔코더 위치 저장 → 케이스 길이 계산 *)
-        Sensor_Position               := GVL_Encoder.Real_Position;
+        Sensor_Position              := GVL_Encoder.Real_Position;
         GVL_Conv.HMI_Motor_CCW       := FALSE;
         GVL_Conv.HMI_Motor_Low_Speed := FALSE;
 
@@ -168,14 +127,11 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
         IF Forward_Distance >= 0 THEN
 
             (* 카메라 트리거 활성화 및 촬영 위치 저장 *)
-            bCamTrigTP := TRUE;
-
-            //IF Move13_Trig.Q THEN
-				Shot_Position          := GVL_Encoder.Real_Position;
-			//END_IF
+            bCamTrigTP    := TRUE;
+            Shot_Position := GVL_Encoder.Real_Position;
 
             (* 카메라 실제 트리거 신호 수신 시 다음 스텝으로 진행 *)
-            IF GVL_Vision.Cam_Trigger AND Shot_Position <> 0  THEN
+            IF GVL_Vision.Cam_Trigger AND Shot_Position <> 0 THEN
                 Mastering_Step := 15;
             END_IF
 
@@ -187,17 +143,15 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
     (* ── STEP 15 : 비전 결과 수신 대기 + 정지 조건 판단 ── *)
     IF Mastering_Step = 15 THEN
 
-        (* 촬영 시점으로부터의 이동 거리 및 여유 거리 계산 *)
-        After_Shot_Distance := GVL_Encoder.Real_Position - Shot_Position;  (* 촬영 후 이동량 *)
-        Remain_Distance     := Move_Margin - After_Shot_Distance;          (* 목표 대비 잔여 이동량 *)
-
-        (* 잔여 이동량이 음수(목표 초과)이고 비전 결과 수신 완료 시 정지 *)
-        IF  GVL_Mastering.mastering_vision_x <> 0 THEN
-            GVL_Conv.HMI_Motor_CW        := FALSE;
-            GVL_Conv.HMI_Motor_Low_Speed := FALSE;
-			GVL_Conv.Conv_Motor_CW        := FALSE;
+        (* 비전 결과 수신 완료 시 정지 *)
+        IF GVL_Mastering.mastering_vision_x <> 0 THEN
+            GVL_Conv.HMI_Motor_CW         := FALSE;
+            GVL_Conv.HMI_Motor_Low_Speed  := FALSE;
+            GVL_Conv.Conv_Motor_CW        := FALSE;
             GVL_Conv.Conv_Motor_Low_Speed := FALSE;
-            //GVL_Mastering.Axis02_Wait_POS_COM := TRUE;  (* Axis02 대기 위치 이동 명령 *)
+            (* Back 복귀 기준점(대기위치)과 목표 복귀거리(Move_Margin)를 진입 시점에 래치 *)
+            Back_Start_Position := GVL_Encoder.Real_Position;
+            Move_Margin         := GVL_Mastering.mastering_vision_x - GVL_Axis02.Wait_Position_Data;
             Mastering_Step := 20;
         END_IF
 
@@ -216,24 +170,22 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
             GVL_Conv.HMI_Motor_CCW       := TRUE;
             GVL_Conv.HMI_Motor_Low_Speed := TRUE;
 
-            (* 촬영 기준점(Shot_Position) 대비 현재 이동량 계산 *)
-            Back_Distance := GVL_Encoder.Real_Position - Shot_Position;
-			//Back_Distance := GVL_Mastering.Back_Shot_Position - GVL_Encoder.Real_Position  ;
-			Back_Remain := Move_Margin - Back_Distance;
-            (* 기준점 도달(역방향 이동 완료) 시 재촬영 수행 *)
-            IF Back_Remain >= Move_Margin THEN
+            (* 대기위치(Back 시작점) 대비 역방향(CCW=엔코더 감소) 복귀 이동량 계산 *)
+            Back_Distance := Back_Start_Position - GVL_Encoder.Real_Position;
+            (* 대기위치~비전 X 거리(Move_Margin)만큼 복귀 시 재촬영 수행 *)
+            IF Back_Distance >= Move_Margin THEN
 
-				bCamTrigTP := TRUE;
+                bCamTrigTP := TRUE;
 
                 (* 카메라 트리거 + 실제 촬영 완료 시 위치 저장 후 다음 스텝으로 *)
                 IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
-                    GVL_Mastering.Reshot_Position := GVL_Encoder.Real_Position;
-					GVL_Axis04.M_Mastering_Pos_Move := FALSE;
-					GVL_Conv.HMI_Motor_CCW         := FALSE;
-					GVL_Conv.HMI_Motor_Low_Speed   := FALSE;
-					GVL_Conv.Conv_Motor_CCW         := FALSE;
-					GVL_Conv.Conv_Motor_Low_Speed   := FALSE;
-                    Mastering_Step       := 25;
+                    GVL_Mastering.Reshot_Position   := GVL_Encoder.Real_Position;
+                    GVL_Axis04.M_Mastering_Pos_Move := FALSE;
+                    GVL_Conv.HMI_Motor_CCW          := FALSE;
+                    GVL_Conv.HMI_Motor_Low_Speed    := FALSE;
+                    GVL_Conv.Conv_Motor_CCW         := FALSE;
+                    GVL_Conv.Conv_Motor_Low_Speed   := FALSE;
+                    Mastering_Step := 25;
                 END_IF
 
             END_IF
@@ -258,7 +210,7 @@ END_IF  (* Case_Length_Check_Start *)
 ]]></ST>
     </Implementation>
     <LineIds Name="Mastering">
-      <LineId Id="200" Count="12" />
+      <LineId Id="210" Count="2" />
       <LineId Id="502" Count="1" />
       <LineId Id="213" Count="74" />
       <LineId Id="504" Count="2" />
@@ -277,13 +229,7 @@ END_IF  (* Case_Length_Check_Start *)
       <LineId Id="586" Count="0" />
       <LineId Id="527" Count="0" />
       <LineId Id="552" Count="1" />
-      <LineId Id="392" Count="13" />
-      <LineId Id="407" Count="2" />
-      <LineId Id="589" Count="0" />
-      <LineId Id="411" Count="3" />
-      <LineId Id="197" Count="0" />
-      <LineId Id="554" Count="4" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="392" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
