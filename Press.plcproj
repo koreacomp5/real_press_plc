@@ -156,9 +156,6 @@
     <Compile Include="POUs\Axis05_Encoder\Axis05_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis05_Encoder\Target_Distance.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Conv.TcPOU">
       <SubType>Code</SubType>
     </Compile>

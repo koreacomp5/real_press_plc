@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <GVL Name="GVL_Vision" Id="{aacb4183-bf71-4ea7-aa39-f263d21233e2}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
@@ -21,7 +21,7 @@ VAR_GLOBAL
 	Vision_Light_ON				AT%Q*		:	BOOL 	;
 	Data_Copy_Comp							:	BOOL	;
 	Data_Empty								:	BOOL	;
-	
+
 //Vision Data
 	Data_Read_X								:	LREAL	;
 	Data_Read_Y								:	LREAL	;
@@ -37,7 +37,8 @@ VAR_GLOBAL
 	Get_Frame_Time							:	LREAL	;
 	ON_Delay_Time							:	LREAL	;
 	Start_Pos_Data							:	LREAL	;
-	Encoder_DATA03							:	LREAL	;
+	Sensor_Trig_Pos							:	LREAL	;	// fiber 센서 감지 시점 엔코더 위치 (카메라 트리거 기준점)
+	Cam_Trig_Position						:	LREAL	;	// 오토모드 카메라 트리거 시점 엔코더 위치 (Target X 보정 기준)
 
 //Vision_Status
 	Vision_Alarm_Code						:	INT		;
@@ -45,37 +46,30 @@ VAR_GLOBAL
 	Axis02_Calibration_Position_Data		:	LREAL	;
 	Axis03_Calibration_Position_Data		:	LREAL	;
 	Axis04_Calibration_Position_Data		:	LREAL	;
-	
+
 	Axis01_Calibration_Position_Data_Old	:	LREAL	;
 	Axis02_Calibration_Position_Data_Old	:	LREAL	;
 	Axis03_Calibration_Position_Data_Old	:	LREAL	;
 	Axis04_Calibration_Position_Data_Old	:	LREAL   ;
-	
+
 	Axis02_Tool_Change_Position_Data		:	LREAL	;
 	Axis03_Tool_Change_Position_Data		:	LREAL	;
 	Axis04_Tool_Change_Position_Data		:	LREAL	;
-	
-	
+
+
 //Vision_Data_Buffer
 
 	Data_Buffer_X							:	LREAL	;
 	Data_Buffer_Y							:	LREAL	;
 	Data_Buffer_R							:	LREAL	;
-	
-	
-	Encoder_DATA01							: ARRAY[1..5] OF LREAL;
-	Encoder_DATA02							:	LREAL	;
-	
-	
 
 
 	Data_Check: BOOL;
 	Vision_Start_Sensor: BOOL;
-	
-	
+
+
 END_VAR
 VAR_GLOBAL PERSISTENT
-	DATA_COUNT								: 	INT;
 	Cam_Trigger_Length						:	LREAL	;
 	Axis04_Mastering_Position_Data: LREAL;
 END_VAR]]></Declaration>

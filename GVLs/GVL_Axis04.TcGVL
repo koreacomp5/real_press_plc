@@ -82,7 +82,6 @@ M_Home_ORG: BOOL;
 	Test_Power_ON: BOOL;
 	Work_End_Speed: LREAL;
 	
-	Torque_Data : LREAL;
 	M_Cleaning_Move: BOOL;
 	Cleaning_Move_Position: BOOL;
 	M_Mastering_Pos_Move: BOOL;

@@ -81,7 +81,6 @@ VAR_GLOBAL
 	
 Maint_Position_Data: LREAL;	Power_ON_Delay: BOOL;
 	Test_Power_ON: BOOL;
-	Torque_Data : LREAL;
 END_VAR
 VAR_GLOBAL PERSISTENT
 //Motor_Position_Data								

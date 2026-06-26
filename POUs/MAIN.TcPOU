@@ -40,7 +40,6 @@ Axis04_Set_Work_End_Speed();
 
 //Axis05: Encoder
 Axis05_Status();
-Target_Distance();
 
 Conv();
 //Alarm
