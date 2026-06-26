@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Mastering" Id="{6e70edb0-906e-463b-bfbd-3cb34e22ea11}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Mastering
+VAR
+	moving_Data : LREAL;
+	Data01 : LREAL;
+	Data02 : LREAL;
+	Data03 : LREAL;
+	Data04 : LREAL;
+	Data05 : LREAL;
+	Data06 : LREAL;
+	Data07 : LREAL;
+	Data08 : LREAL;
+	Data09 : LREAL;
+	Data10 : LREAL;
+	Vision_Start_Sensor_Trig  : R_TRIG;
+	Start_Trig	:	R_TRIG;
+	Data01_Trig :	R_TRIG;
+	Data02_Trig :	R_TRIG;
+	Data03_Trig :	R_TRIG;
+	Data04_Trig :	R_TRIG;
+	
+	Mastering_Step : INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+(* ============================================================
+   프로그램명 : Mastering - Case Length Check
+   설  명    : 비전 마스터링을 위한 케이스 길이 측정 및 카메라 트리거 제어
+               컨베이어 구동 → 케이스 길이 측정 → 카메라 촬영 위치 이동
+               → 재촬영(Back) → 마스터링 완료
+   ============================================================ *)
+
+(* ──────────────────────────────────────────────────────────────
+   [트리거 업데이트]
+   상승 엣지 감지: 비전 시작 센서, 케이스 길이 체크 시작, Back 트리거
+   ────────────────────────────────────────────────────────────── *)
+Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Start_Trig(CLK := GVL_Mastering.Case_Length_Check_Start);
+Data01_Trig(CLK := GVL_Mastering.Case_Length_Check_Start);
+
+Data03_Trig(CLK := GVL_Mastering.Back_Trig);
+Data04_Trig(CLK := Data03 >= 13);
+(* ──────────────────────────────────────────────────────────────
+   [연산값 계산]
+   moving_Data : 비전 마스터링 X 위치와 Axis02 대기 위치의 차이 (이동 여유량)
+   Data08      : 마스터링 전후 비전 촬영 위치 차이값 (결과 비교용)
+   ────────────────────────────────────────────────────────────── *)
+moving_Data := GVL_Mastering.mastering_vision_x - GVL_Axis02.Wait_Position_Data;
+Data08      := GVL_Mastering.Data01 - GVL_Mastering.Data02;
+Data09		:= Data04 - GVL_Mastering.Data01;
+(* ──────────────────────────────────────────────────────────────
+   [Back 트리거 처리]
+   Back 트리거 상승 엣지 발생 시 현재 엔코더 위치를 Data01에 저장
+   ────────────────────────────────────────────────────────────── *)
+IF Data03_Trig.Q THEN
+    GVL_Mastering.Data01 := GVL_Encoder.Real_Position;
+END_IF
+
+	
+(* ==============================================================
+   [초기화 처리] All_Initial + Manual_Mode 조건에서 전체 변수 리셋
+   ============================================================== *)
+IF GVL_System.All_Initial AND GVL_System.Manual_Mode THEN
+
+    (* 내부 연산 변수 초기화 *)
+    Data01      := 0;
+    Data02      := 0;
+    Data03      := 0;
+    Data04      := 0;
+    Data05      := 0;
+    Data06      := 0;
+    Data07      := 0;
+    moving_Data := 0;
+
+    (* GVL 마스터링 변수 초기화 *)
+    GVL_Mastering.mastering_vision_x      := 0;
+    GVL_Mastering.Case_Length_Check_Start := FALSE;
+    GVL_Mastering.Cam_Trig                := FALSE;
+    GVL_Mastering.Back_Trig               := FALSE;
+    GVL_Mastering.Case_Length             := 0;
+
+    (* 스텝 및 축 명령 초기화 *)
+    Mastering_Step                        := 0;
+    GVL_Mastering.Axis02_Wait_POS_COM     := FALSE;
+
+END_IF
+
+
+(* ==============================================================
+   [마스터링 메인 시퀀스] Case_Length_Check_Start = TRUE 조건에서 실행
+   ============================================================== *)
+IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
+
+
+    (* ── STEP 0 : 마스터링 시작 초기화 및 컨베이어 역방향 구동 ── *)
+    IF  Mastering_Step = 0 THEN
+
+        (* 내부 변수 초기화 *)
+        moving_Data  := 0;
+        Data01 := 0;
+        Data02 := 0;
+        Data03 := 0;
+        Data04 := 0;
+        Data05 := 0;
+        Data06 := 0;
+        Data07 := 0;
+
+        (* GVL 마스터링 변수 초기화 *)
+        GVL_Mastering.mastering_vision_x  := 0;
+        GVL_Mastering.Axis02_Wait_POS_COM := FALSE;
+        GVL_Mastering.Cam_Trig            := FALSE;
+        GVL_Mastering.Back_Trig           := FALSE;
+        GVL_Mastering.Case_Length         := 0;
+
+        (* 케이스 시작 위치 기록 후 컨베이어 역방향(CCW) 저속 구동 시작 *)
+		IF Data01_Trig.Q THEN
+			   Data01                     := GVL_Encoder.Real_Position;
+		END_IF
+     
+        GVL_Conv.HMI_Motor_CCW      := TRUE;
+        GVL_Conv.HMI_Motor_Low_Speed := TRUE;
+
+        Mastering_Step := 5;
+
+    END_IF
+
+
+    (* ── STEP 5 : 비전 시작 센서 감지 → 케이스 길이 계산 ── *)
+    IF Vision_Start_Sensor_Trig.Q AND Mastering_Step = 5 THEN
+
+        (* 센서 감지 시점의 엔코더 위치 저장 → 케이스 길이 계산 *)
+        Data02                        := GVL_Encoder.Real_Position;
+        GVL_Conv.HMI_Motor_CCW       := FALSE;
+        GVL_Conv.HMI_Motor_Low_Speed := FALSE;
+
+        GVL_Mastering.Case_Length := Data01 - Data02;
+
+        (* 케이스 길이가 유효할 때만 다음 스텝으로 진행 *)
+        IF GVL_Mastering.Case_Length <> 0 THEN
+            Mastering_Step := 10;
+        END_IF
+
+    END_IF
+
+
+    (* ── STEP 10 : 컨베이어 정방향 구동 + 카메라 트리거 위치 탐색 ── *)
+    IF GVL_Mastering.Case_Length <> 0 AND Mastering_Step = 10 THEN
+
+        (* 컨베이어 정방향(CW) 저속 구동 *)
+        GVL_Conv.HMI_Motor_CW        := TRUE;
+        GVL_Conv.HMI_Motor_Low_Speed := TRUE;
+
+        (* 현재 이동 거리 갱신 (기준위치 Data01 기준) *)
+        Data03 := GVL_Encoder.Real_Position - Data01;
+
+        IF Data03 >= 0 THEN
+
+            (* 카메라 트리거 활성화 및 촬영 위치 저장 *)
+            GVL_Mastering.Cam_Trig := TRUE;
+		
+            //IF Data04_Trig.Q THEN
+				Data04                 := GVL_Encoder.Real_Position;
+			//END_IF
+
+            (* 카메라 실제 트리거 신호 수신 시 다음 스텝으로 진행 *)
+            IF GVL_Vision.Cam_Trigger AND Data04 <> 0  THEN
+                Mastering_Step := 15;
+            END_IF
+
+        END_IF
+
+    END_IF
+
+
+    (* ── STEP 15 : 비전 결과 수신 대기 + 정지 조건 판단 ── *)
+    IF Mastering_Step = 15 THEN
+
+        GVL_Mastering.Cam_Trig := FALSE;
+
+        (* 촬영 시점으로부터의 이동 거리 및 여유 거리 계산 *)
+        Data05 := GVL_Encoder.Real_Position - Data04;  (* 촬영 후 이동량 *)
+        Data06 := moving_Data - Data05;                 (* 목표 대비 잔여 이동량 *)
+
+        (* 비전 결과값이 수신된 경우 카메라 트리거 OFF *)
+        IF GVL_Mastering.mastering_vision_x <> 0 THEN
+            GVL_Mastering.Cam_Trig := FALSE;
+        END_IF
+
+        (* 잔여 이동량이 음수(목표 초과)이고 비전 결과 수신 완료 시 정지 *)
+        IF Data06 <= 0 AND GVL_Mastering.mastering_vision_x <> 0 THEN
+            GVL_Conv.HMI_Motor_CW        := FALSE;
+            GVL_Conv.HMI_Motor_Low_Speed := FALSE;
+			GVL_Conv.Conv_Motor_CW        := FALSE;
+            GVL_Conv.Conv_Motor_Low_Speed := FALSE;
+            GVL_Mastering.Axis02_Wait_POS_COM := TRUE;  (* Axis02 대기 위치 이동 명령 *)
+            Mastering_Step := 20;
+        END_IF
+
+    END_IF
+
+
+    (* ── STEP 20 : Axis04 마스터링 위치 이동 → 역방향 재촬영 ── *)
+    IF Mastering_Step = 20 AND GVL_Mastering.Back_Trig THEN
+
+        (* Axis04를 마스터링 위치로 이동 명령 *)
+        GVL_Axis04.M_Mastering_Pos_Move := TRUE;
+
+        IF GVL_Axis04.Mastering_Position THEN
+
+            (* Axis04 마스터링 위치 도달 후 컨베이어 역방향 저속 구동 *)
+            GVL_Conv.HMI_Motor_CCW       := TRUE;
+            GVL_Conv.HMI_Motor_Low_Speed := TRUE;
+
+            (* 촬영 기준점(Data04) 대비 현재 이동량 계산 *)
+            Data07 := GVL_Encoder.Real_Position - Data04;
+			//Data07 := GVL_Mastering.Data01 - GVL_Encoder.Real_Position  ;
+			Data10 := moving_Data - Data07; 
+            (* 기준점 도달(역방향 이동 완료) 시 재촬영 수행 *)
+            IF Data10 >= Moving_Data THEN
+
+                GVL_Mastering.Cam_Trig          := TRUE;
+
+                (* 카메라 트리거 + 실제 촬영 완료 시 위치 저장 후 다음 스텝으로 *)
+                IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
+                    GVL_Mastering.Data02 := GVL_Encoder.Real_Position;
+					GVL_Axis04.M_Mastering_Pos_Move := FALSE;
+					GVL_Conv.HMI_Motor_CCW         := FALSE;
+					GVL_Conv.HMI_Motor_Low_Speed   := FALSE;
+					GVL_Conv.Conv_Motor_CCW         := FALSE;
+					GVL_Conv.Conv_Motor_Low_Speed   := FALSE;
+                    Mastering_Step       := 25;
+                END_IF
+
+            END_IF
+
+        END_IF
+
+    END_IF
+
+
+    (* ── STEP 25 : 마스터링 완료 처리 ── *)
+    IF Mastering_Step = 25 THEN
+
+        (* 마스터링 관련 플래그 및 스텝 초기화 → 시퀀스 종료 *)
+        GVL_Mastering.Case_Length_Check_Start := FALSE;
+        GVL_Mastering.Cam_Trig                := FALSE;
+        GVL_Mastering.Back_Trig               := FALSE;
+        Mastering_Step                        := 0;
+
+    END_IF
+
+
+END_IF  (* Case_Length_Check_Start *)
+]]></ST>
+    </Implementation>
+    <LineIds Name="Mastering">
+      <LineId Id="198" Count="14" />
+      <LineId Id="502" Count="1" />
+      <LineId Id="213" Count="74" />
+      <LineId Id="504" Count="2" />
+      <LineId Id="288" Count="40" />
+      <LineId Id="513" Count="0" />
+      <LineId Id="516" Count="1" />
+      <LineId Id="329" Count="29" />
+      <LineId Id="550" Count="1" />
+      <LineId Id="359" Count="20" />
+      <LineId Id="509" Count="0" />
+      <LineId Id="380" Count="4" />
+      <LineId Id="388" Count="2" />
+      <LineId Id="518" Count="0" />
+      <LineId Id="525" Count="2" />
+      <LineId Id="552" Count="1" />
+      <LineId Id="392" Count="22" />
+      <LineId Id="197" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

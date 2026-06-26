@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Motion_Step" Id="{0a3874d6-417c-4b69-a211-08b3ae03d94c}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Status: BOOL;
+	No: INT;
+	Target_Pos_Moving: BOOL;
+	Motion_Start: BOOL;
+	Axis02_Work_Wait: BOOL;
+	Press_Start: BOOL;
+	Axis04_Torque_Controll: BOOL;
+	Axis04_Wait_Pos_Moving: BOOL;
+	All_Axis_Wait_Pos_Moving: BOOL;
+	Work_Comp_Target_Pos_Moving: BOOL;
+	All_Initial: BOOL;
+	Axis02_Stop: BOOL;
+	Z_Press_Start: BOOL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="HOME_MOVE" Id="{0b7a5dc2-9791-47fe-9b1f-c3a35a108549}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM HOME_MOVE
+VAR
+	DATA1: LREAL;
+	DATAPLS : R_TRIG;
+	Manual_TRIG : R_TRIG;
+	AUTO_TRIG : R_TRIG;
+END_VAR
+//원점 순서
+//1. Z축 잡고 
+//2. Z축 올리고
+//3.Y축 잡고
+//4.Y축 WAIT 포지션
+//5. X 축 잡고
+//6. 모두 원점 잡으면 올 WAIT 포지션]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Manual_TRIG(CLK := GVL_System.Manual_Mode);
+AUTO_TRIG(CLK := GVL_System.AUTO_Mode);
+IF (GVL_SYSTEM.ALL_Home_Move_PB OR AUTO_TRIG.Q) AND GVL_System.ALL_Motor_Homed AND NOT GVL_System.ALL_Wait_Position THEN
+	GVL_System.All_Axis_Wait_Pos_Moving :=TRUE;
+	GVL_Axis04.M_Cleaning_Move := FALSE;
+END_IF
+IF GVL_System.ALL_Wait_Position THEN
+	GVL_System.All_Axis_Wait_Pos_Moving :=FALSE;
+END_IF
+IF Manual_TRIG.Q AND GVL_System.ALL_Motor_Homed THEN
+	GVL_Axis04.M_Cleaning_Move := TRUE;
+	
+END_IF
+
+IF GVL_Axis04.Cleaning_Move_Position THEN
+	GVL_Axis04.M_Cleaning_Move := FALSE;
+END_IF
+
+IF	(GVL_AxIS02.Wait_Position = TRUE) AND	(GVL_AxIS03.Wait_Position = TRUE) AND	(GVL_AxIS04.Wait_Position = TRUE) AND (GVL_AxIS01.Wait_Position = TRUE) THEN
+	
+		GVL_System.ALL_Wait_Position := TRUE;
+	
+ELSE
+		GVL_System.ALL_Wait_Position := FALSE;
+	
+END_IF
+
+
+IF GVL_SYSTEM.ALL_Home_Move_PB = TRUE AND GVL_System.Manual_Mode = TRUE  AND (GVL_System.ALL_Motor_Homed = FALSE) THEN
+	
+	GVL_SYSTEM.ALL_Home_Move_Start := TRUE;		// 원점 시작
+		
+END_IF
+
+IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
+	
+	GVL_System.Axis04_Home_Move := TRUE;	// Z축 원점 시작
+	
+	IF (GVL_Axis04.Home_OK = TRUE) THEN
+		
+		GVL_System.Axis02_Home_Move := TRUE;	     //Z축 원점 확인 후 X축 원점 시작  //
+		
+	END_IF
+	IF (GVL_Axis02.Home_OK = TRUE) THEN
+		
+		GVL_System.Axis03_Home_Move := TRUE;	//   X축 원점 확인 후 가이드 Y,R 축 모두 원점 시작 GVL_System.Axis04_Home_Move
+		
+	END_IF
+	IF (GVL_Axis03.Home_OK = TRUE) THEN
+		GVL_System.Axis01_Home_Move := TRUE;
+	END_IF
+	
+		
+	IF GVL_System.All_Initial AND NOT GVL_System.ALL_Motor_Homed THEN
+		GVL_SYSTEM.Axis02_Home_Move := FALSE;
+		GVL_SYSTEM.Axis03_Home_Move := FALSE;
+		GVL_SYSTEM.Axis04_Home_Move := FALSE;
+		GVL_SYSTEM.Axis01_Home_Move := FALSE;
+		GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+	END_IF
+	IF	(GVL_System.ALL_Motor_Homed = TRUE) AND (GVL_Axis01.Home_OK = TRUE)  THEN
+		//모든 측 원점 확인 후 리셋 및 wait 포지션 이동
+		
+		GVL_SYSTEM.Axis02_Home_Move := FALSE;
+		GVL_SYSTEM.Axis03_Home_Move := FALSE;
+		GVL_SYSTEM.Axis04_Home_Move := FALSE;
+		GVL_SYSTEM.Axis01_Home_Move := FALSE;
+		
+		GVL_SYSTEM.Axis02_Wait_Pos_Move := TRUE;
+		GVL_SYSTEM.Axis03_Wait_Pos_Move := TRUE;
+		GVL_SYSTEM.Axis04_Wait_Pos_Move := TRUE;
+		GVL_SYSTEM.Axis01_Wait_Pos_Move := TRUE;
+	
+	END_IF
+	IF	(GVL_System.ALL_Wait_Position = TRUE) THEN
+		
+		GVL_SYSTEM.ALL_Home_Move_Start 	:= FALSE;
+		GVL_SYSTEM.Axis02_Wait_Pos_Move := FALSE;
+		GVL_SYSTEM.Axis03_Wait_Pos_Move := FALSE;
+		GVL_SYSTEM.Axis04_Wait_Pos_Move := FALSE;
+		GVL_SYSTEM.Axis01_Wait_Pos_Move := FALSE;
+	END_IF
+
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="HOME_MOVE">
+      <LineId Id="285" Count="0" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="288" Count="0" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="301" Count="2" />
+      <LineId Id="287" Count="0" />
+      <LineId Id="289" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="293" Count="1" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="127" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="252" Count="0" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="335" Count="2" />
+      <LineId Id="333" Count="0" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="138" Count="3" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="148" Count="4" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="192" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="188" Count="2" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="234" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

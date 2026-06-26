@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="MAIN" Id="{0e8aa309-c2dc-4a80-80a6-2410e704eb56}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//Axis01: R
+Axis01_Status();
+//Axis01_Interlock_ST();
+Axis01_Command();
+Axis01_Manual();
+Axis01_Auto();
+Axis01_Alarm();
+
+//Axis02: X
+Axis02_Status();
+//Axis02_Interlock_ST();
+Axis02_Command();
+Axis02_Manual();
+Axis02_Auto();
+Axis02_Alarm();
+
+//Axis03: Y
+Axis03_Status();
+//Axis03_Interlock_ST();
+Axis03_Command();
+Axis03_Manual();
+Axis03_Auto();
+Axis03_Alarm();
+
+//Axis04: Z
+Axis04_Status();
+Axis04_Command();
+Axis04_Manual();
+Axis04_Auto();
+Axis04_Alarm();
+Axis04_Set_Work_End_Speed();
+
+//Axis05: Encoder
+Axis05_Status();
+Target_Distance();
+
+Conv();
+//Alarm
+Alarm_Error();
+Alarm_Warring();
+
+//System
+HMI();
+HOME_MOVE();
+Initial();
+//Moving_Speed();
+System();
+//Login_Timer();
+
+
+//Vision
+Vision_Calibration_ST();
+Vision_ST();
+Move_Command();
+
+
+//Work
+Motion_Step_ST();
+
+Mastering();
+
+GOST();
+
+Data_Save();]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="17" Count="34" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="54" Count="20" />
+      <LineId Id="81" Count="1" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="91" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

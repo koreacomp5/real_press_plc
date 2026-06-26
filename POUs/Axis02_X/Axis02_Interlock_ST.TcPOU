@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis02_Interlock_ST" Id="{fbc3052e-123d-4413-80ce-78f17c119607}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis02_Interlock_ST
+VAR
+//System_Bit
+	Always_ON	:	BOOL	:=TRUE	;//상시 ON 
+	Always_OFF	:	BOOL	:=FALSE	;//상시 OFF
+	AxisRangeOK      : BOOL;
+    AxisRangeOK_NoZ  : BOOL;  // Axis04 없는 버전
+	YOK: BOOL;
+	ROK: BOOL;
+	ZOK: BOOL;
+END_VAR
+
+VAR CONSTANT
+    AXIS02_SAFE_LIMIT : REAL := 55.0;
+END_VAR
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="Axis02_Interlock_ST">
+      <LineId Id="291" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

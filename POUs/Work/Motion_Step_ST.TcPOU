@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Motion_Step_ST" Id="{ac3913c8-2e13-4a7b-9725-7ff41cb7600e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Motion_Step_ST
+VAR
+    Axis04_Torque_Controll       : TON;
+    Axis02_Wait_Pos_Moving_Delay : TON;
+    Always_ON                    : BOOL := TRUE;
+    Always_OFF                   : BOOL := FALSE;
+    Axis04_Work_end_Delay        : TON;
+    Data_Copy_Comp_Trig          : R_TRIG;
+	 Delta_X_Temp : LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+// run1 Status 조건 
+GVL_Motion_Step.Status := 
+    (GVL_System.Auto_Mode OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
+    AND GVL_System.Safety_ALL_OK;
+
+// 코일 초기화
+GVL_Motion_Step.Motion_Start := FALSE;
+GVL_Motion_Step.Target_Pos_Moving := FALSE;
+GVL_Motion_Step.Axis02_Work_Wait := FALSE;
+GVL_Motion_Step.Press_Start := FALSE;
+GVL_Motion_Step.Z_Press_Start := FALSE;
+GVL_Motion_Step.Axis04_Wait_Pos_Moving := FALSE;
+GVL_Motion_Step.Axis02_Stop := FALSE;
+GVL_Motion_Step.All_Axis_Wait_Pos_Moving := FALSE;
+GVL_Motion_Step.Work_Comp_Target_Pos_Moving := FALSE;
+GVL_Motion_Step.All_Initial := FALSE;
+
+IF GVL_Motion_Step.Status THEN
+
+    // run2 Step 0: Motion Start
+	Data_Copy_Comp_Trig(CLK := GVL_Vision.Data_Copy_Comp);
+    IF GVL_Motion_Step.No = 0 AND Data_Copy_Comp_Trig.Q THEN
+            GVL_Motion_Step.Motion_Start := TRUE; // not use
+            GVL_Motion_Step.No := 1;
+    END_IF
+
+    //run 3 Step 1: Target Pos Moving
+    IF GVL_Motion_Step.No = 1 AND GVL_Vision.Data_Copy_Comp THEN
+		GVL_Motion_Step.Target_Pos_Moving := TRUE; // reference axis03_auto, xis01_auto 
+		IF GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
+			GVL_Motion_Step.No := 5;
+		END_IF
+    END_IF
+ 
+    //run 5 Step 5: Axis02 Work Wait
+    IF GVL_Motion_Step.No = 5 THEN
+        GVL_Motion_Step.Axis02_Work_Wait := TRUE;
+        IF GVL_Vision.Target_X_Real_Position_Data <= GVL_Axis02.Wait_Position_Data THEN      
+         	Delta_X_Temp := GVL_Encoder.Real_Position - GVL_Vision.Encoder_DATA03;
+			GVL_Motion_Step.No := 10;
+        END_IF
+        IF GVL_Vision.Vision_NG THEN
+            GVL_Motion_Step.No := 10;
+        END_IF
+    END_IF
+
+    //run 7  Step 10: Press Start valid
+    IF GVL_Motion_Step.No = 10 THEN
+        GVL_Motion_Step.Press_Start := TRUE;
+        IF GVL_Vision.Target_X_Real_Position_Data <= (GVL_Axis02.Wait_Position_Data - GVL_Axis02.Sync_Data) THEN
+            GVL_Motion_Step.Z_Press_Start := TRUE;
+        END_IF
+        IF GVL_Axis04.Work_End_Position THEN
+            GVL_Motion_Step.No := 20;
+        END_IF
+    END_IF
+
+    //run 9 Step 20: Axis04 Wait Pos Moving
+    IF GVL_Motion_Step.No = 20 THEN
+		IF GVL_Axis02.Real_Position <-1 THEN
+			GVL_Motion_Step.Press_Start := FALSE;
+			GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
+			GVL_Motion_Step.No := 25;
+		END_IF
+        IF GVL_Axis02.Real_Position <= (GVL_Axis02.Work_End_Position_Data + 10) THEN
+            GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
+        END_IF
+        IF GVL_Axis02.Real_Position <= GVL_Axis02.Work_End_Position_Data THEN
+            GVL_Motion_Step.No := 25;
+        END_IF
+    END_IF
+
+    //run 10 Step 25: Axis02 Stop
+    IF GVL_Motion_Step.No = 25 THEN
+        GVL_Motion_Step.Axis02_Stop := TRUE;
+        IF GVL_Axis02.Work_End_Position THEN
+			IF NOT GVL_Vision.Vision_OK THEN
+				GVL_Motion_Step.No := 30;
+			END_IF
+			IF GVL_Vision.Vision_OK THEN
+				GVL_Motion_Step.No := 35;
+			END_IF
+		END_IF
+    END_IF
+
+    //run 12 Step 30: All Axis Wait Pos Moving
+    IF GVL_Motion_Step.No = 30 THEN
+        GVL_Motion_Step.All_Axis_Wait_Pos_Moving := TRUE;
+        IF GVL_System.ALL_Wait_Position THEN
+            GVL_Motion_Step.No := 40;
+        END_IF
+    END_IF
+
+    //run13 Step 35: Work Comp Target Pos Moving
+    IF GVL_Motion_Step.No = 35 THEN
+        GVL_Motion_Step.Work_Comp_Target_Pos_Moving := TRUE;
+        IF GVL_Axis02.Wait_Position AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
+            GVL_Motion_Step.No := 40;
+        END_IF
+    END_IF
+
+    // run 14 Step 40: All Initial
+    IF GVL_Motion_Step.No = 40 THEN
+        GVL_Motion_Step.All_Initial := TRUE;
+        GVL_Motion_Step.No := 0;
+    END_IF
+
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="Motion_Step_ST">
+      <LineId Id="348" Count="20" />
+      <LineId Id="470" Count="0" />
+      <LineId Id="370" Count="2" />
+      <LineId Id="374" Count="3" />
+      <LineId Id="379" Count="3" />
+      <LineId Id="384" Count="5" />
+      <LineId Id="492" Count="0" />
+      <LineId Id="491" Count="0" />
+      <LineId Id="391" Count="18" />
+      <LineId Id="503" Count="0" />
+      <LineId Id="517" Count="0" />
+      <LineId Id="504" Count="0" />
+      <LineId Id="506" Count="0" />
+      <LineId Id="505" Count="0" />
+      <LineId Id="410" Count="10" />
+      <LineId Id="475" Count="0" />
+      <LineId Id="480" Count="1" />
+      <LineId Id="479" Count="0" />
+      <LineId Id="471" Count="0" />
+      <LineId Id="422" Count="1" />
+      <LineId Id="472" Count="0" />
+      <LineId Id="427" Count="24" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Calibration" Id="{954dc223-ae76-4003-91c9-88b775d954de}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	Calibration_Pos_Moving			: 	BOOL	;
+	HMI_Calibration_Pos_Move_PB		: 	BOOL	;
+	Calibration_comp				: 	BOOL	;
+	Calibration_OK					: 	BOOL	;
+	All_Motor_Wait_Pos_Moving		: 	BOOL	;
+	Calibration_Pos_Interlock 		: 	BOOL	;
+	Data_Read_Comp					: 	BOOL	;
+	Axis01_Data_Apply_Comp			: 	BOOL	;
+	Axis02_Data_Apply_Comp			: 	BOOL	;
+	Axis03_Data_Apply_Comp			: 	BOOL	;
+	Axis04_Data_Apply_Comp			:   BOOL;
+	Motor_Move : BOOL := FALSE;
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

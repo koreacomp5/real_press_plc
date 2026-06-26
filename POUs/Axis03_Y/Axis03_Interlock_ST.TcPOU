@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis03_Interlock_ST" Id="{76b1b8d3-4239-4d1c-a88d-8ceb210f28bf}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis03_Interlock_ST
+VAR
+    Always_ON    : BOOL := TRUE;
+    Always_OFF   : BOOL := FALSE;
+    Axis02_Safe  : BOOL;
+    InRange_Home : BOOL;
+    InRange_Wait : BOOL;
+    InRange_Work : BOOL;
+END_VAR
+
+VAR CONSTANT
+    AXIS02_SAFE_LIMIT : REAL := 55.0;
+    Y_MIN             : REAL := -24;
+    Y_MAX             : REAL := 24;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="Axis03_Interlock_ST">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

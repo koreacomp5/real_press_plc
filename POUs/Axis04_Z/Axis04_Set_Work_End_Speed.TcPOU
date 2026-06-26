@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Axis04_Set_Work_End_Speed" Id="{e32a4f33-ffb8-4eef-8cba-292e6d0e32cd}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Axis04_Set_Work_End_Speed
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+IF GVL_System.Manual_Mode THEN 
+	GVL_Axis04.Work_End_Speed := 30 ;
+ELSE 
+	GVL_Axis04.Work_End_Speed:= (15 * gvl_Encoder.Real_Velocity)/ GVL_Axis02.Sync_Data;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="Axis04_Set_Work_End_Speed">
+      <LineId Id="6" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

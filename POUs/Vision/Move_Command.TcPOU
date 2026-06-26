@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Move_Command" Id="{025a35f5-28d2-4787-834e-1b98fbe85877}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Move_Command
+VAR
+	Motor_Move_Trig          : R_TRIG;
+	vis_x :  LREAL ;
+	vis_y :  LREAL ;
+	vis_r :  LREAL ;
+	vis_z :  LREAL ;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+vis_r := GVL_Vision.Axis01_Calibration_Position_Data;
+vis_x := GVL_Vision.Axis02_Calibration_Position_Data;
+vis_y := GVL_Vision.Axis03_Calibration_Position_Data;
+vis_z := GVL_Vision.Axis04_Calibration_Position_Data;
+
+
+Motor_Move_Trig(CLK := GVL_Calibration.Motor_Move);
+
+IF  Motor_Move_Trig.Q THEN
+	GVL_Axis01.Calibration_Position := FALSE;
+	GVL_Axis02.Calibration_Position := FALSE;
+	GVL_Axis03.Calibration_Position := FALSE;
+	GVL_Axis04.Calibration_Position := FALSE;
+	GVL_Calibration.Calibration_Pos_Moving := TRUE;
+END_IF
+
+IF GVL_Axis01.Calibration_Position AND
+   GVL_Axis02.Calibration_Position AND
+   GVL_Axis03.Calibration_Position AND 
+   GVL_Axis04.Calibration_Position THEN
+	GVL_Calibration.Motor_Move := FALSE;
+	GVL_Calibration.Calibration_Pos_Moving := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="Move_Command">
+      <LineId Id="20" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="24" Count="1" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

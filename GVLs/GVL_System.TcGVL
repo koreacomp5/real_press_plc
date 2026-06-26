@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_System" Id="{ef782174-bf90-4121-a9ae-035fc84d7e43}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+// Glovel Bit
+	Pulse_100ms					:	BOOL	;			//0.1s Bit
+	Pulse_1S					:	BOOL	;			//1S Bit		
+// System Bit
+	Manual_Mode					:	BOOL	;			//HMI 메뉴얼 모드
+	Auto_Mode					:	BOOL	;			//HMI 오토모드
+	Stop						:	BOOL	;			//HMI Stop
+	Safety_ALL_OK				:	BOOL	;			//EMO+Door
+	Test_Mode					:	BOOL	;
+	All_Initial					:	BOOL	;
+	ToggleBit					:	BOOL	;
+	Door_Bypass					:	BOOL	;
+//EMO SW	
+	EMO_SWitch		AT%I*		:	BOOL	;
+
+//Fiber Sensor
+	Vision_Start_Sensor	AT%I*	:	BOOL	;
+	Press_Start_Sensor	AT%I*	:	BOOL	;
+	Press_End_Sensor	AT%I*	:	BOOL	;
+
+//System_Door_Sensor
+	Door_Open		AT%I*		:	BOOL	;
+
+//TowerLamp
+	Tower_Lamp_Green	AT%Q*	:	BOOL	;
+	Tower_Lamp_Yellow	AT%Q*	:	BOOL	;
+	Tower_Lamp_Red		AT%Q*	:	BOOL	;
+	Buzzer				AT%Q*	:	BOOL	;
+//HMI
+	Buzzer_Stop						AT%I*	:	BOOL	;
+	Alarm_Reset						AT%I*	:	BOOL	;
+//Panel
+	DC01_SMPS_OK					AT%I*	:	BOOL	;
+	DC02_SMPS_OK					AT%I*	:	BOOL	;
+	DC03_SMPS_OK					AT%I*	:	BOOL	;
+	Servo_Drive_Control_DC_Power	AT%I*	:	BOOL	;
+	Inverter_Power_OK					AT%I*	:	BOOL	;
+	Inverter_MC_OK					AT%I*	:	BOOL	;
+	MC_OK							AT%I*	:	BOOL	;
+	CAM_TRIGGER_FAIL				AT%I*	:	BOOL	;
+	Main_Lamp_ON					AT%I*	:	BOOL	;
+	PC_Power_CP						AT%I*	:	BOOL	;
+	CAM_Lamp_CP						AT%I*	:	BOOL	;
+	Ps01_Power_OK					AT%I*	:	BOOL	;
+	HMI_Power_OK					AT%I*	:	BOOL	;
+	Cam_Power_OK					AT%I*	:	BOOL	;
+	Inverter_Alarm_ON					AT%I*	:	BOOL	;
+	
+	
+//Bool
+	HMI_Auto_Mode				:	BOOL	;		//HMI 오토모드
+	ALL_Motor_Homed				:	BOOL	;		//전체 모터 홈 OK
+	ALL_Motor_Home_Position		:	BOOL	;		//전체 모터 홈포지션
+	HMI_Manual_Mode				:	BOOL	;		//HMI 메뉴얼 모드
+	ALL_Motor_Busy				:	BOOL	;		//전체 모터 동작중
+	ALL_Motor_StandStill		:	BOOL	;		//전체 모터 동작 가능
+	Moving_Motor_Wait_Position	:	BOOL	;		//X,Y,Z,R Wait Position
+	Each_Motor_Homed			:	BOOL	;		//개별 로못 홈
+	Each_Motor_Busy				:	BOOL	;		//개별 로봇 동작중
+	All_Motor_Stop				:	BOOL	;	
+	
+	
+	
+	Test_Data_Read_Comp			: 	BOOL	;
+	Test_Continues				: 	BOOL	;
+	Calibration_Mode			: 	BOOL	;
+	Tool_Change_Mode			: 	BOOL	;
+	Tool_Change_Move_PB			: 	BOOL	;	
+//홈동작 
+	ALL_Wait_Position			: 	BOOL	;
+	ALL_Home_Move_PB			:	BOOL	;
+	ALL_Home_Move_Start			:	BOOL	;
+	Axis01_Home_Move			: 	BOOL	;
+	Axis02_Home_Move			: 	BOOL	;
+	Axis03_Home_Move			: 	BOOL	;
+	Axis04_Home_Move			: 	BOOL	;
+	
+	Axis01_Home_Pos_Move		: 	BOOL	;
+	Axis04_Wait_Pos_Move		:	BOOL	;
+	Axis03_Wait_Pos_Move		: 	BOOL	;
+	Axis01_Wait_Pos_Move		: 	BOOL	;
+	Axis02_Wait_Pos_Move		: 	BOOL	;
+	Calibration_PB				: 	BOOL	;
+	Test_Start					: 	BOOL	;
+	
+//현재 시간
+	Time_Data 					: 	ULINT	; 
+	
+	Offset_Value				:	LREAL	;
+	Press_Start_Sensor_S		:	BOOL	;
+	Task_Offset					:	LREAL	;
+	Task_Time					:	LREAL	;
+
+	CV_STOP: BOOL;
+	
+
+	Manual_Cam_Trigger			: 	BOOL	;
+	Manual_Door_Bypass			: 	BOOL	;
+	HMI_Door_Bypass				: 	BOOL	;
+	Login						: 	BOOL	;
+	LoginLamp					:	BOOL	;
+	All_Axis_Wait_Pos_Moving: BOOL;
+	Add_Case_Mode: BOOL;
+	
+	GOST_MODE					:	BOOL	;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

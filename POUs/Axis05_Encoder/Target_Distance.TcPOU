@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Target_Distance" Id="{5669ba24-c19c-4e2a-8792-7f3a472940c5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Target_Distance
+VAR
+	
+
+	Cam_Trigger : R_TRIG;
+	Cam_Trigger2 : R_TRIG;
+	AllInit_RTrig : R_TRIG; 
+	i: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Cam_Trigger(CLK := GVL_VISION.Cam_Trigger);
+Cam_Trigger2(CLK := GVL_Motion_Step.Z_Press_Start OR GVL_Vision.Vision_NG);
+
+
+
+
+
+IF AllInit_RTrig.Q THEN
+    FOR i := 1 TO 5 DO
+        GVL_Vision.Encoder_DATA01[i] := 0;
+    END_FOR
+END_IF 
+(* 1. 트리거 업데이트 *)
+
+(* 2. 메인 카메라 트리거 발생 시 (데이터 적재) *)
+IF GVL_SYSTEM.Auto_Mode AND Cam_Trigger.Q THEN
+    
+    // 데이터를 한 칸씩 뒤로 밀기 (Index 5는 사라지고, 4->5, 3->4... 순서)
+    FOR GVl_Vision.DATA_COUNT := 5 TO 2 BY -1 DO
+        GVL_Vision.Encoder_DATA01[GVl_Vision.DATA_COUNT] := GVL_Vision.Encoder_DATA01[GVl_Vision.DATA_COUNT-1];
+    END_FOR
+    
+    // 가장 앞(Index 1)에 현재 엔코더 값 입력
+    GVL_Vision.Encoder_DATA01[1] := GVL_Encoder.Real_Position;
+    
+END_IF
+
+
+(* 3. 배출 또는 특정 시점 트리거 (데이터 삭제/이동) *)
+// 기존 코드의 DATA01 := DATA02 로직을 "사용한 데이터 삭제" 개념으로 재구성
+IF Cam_Trigger2.Q THEN
+    
+    // 필요에 따라 가장 오래된 데이터를 0으로 지우거나 
+    // 전체 배열을 한 칸씩 당겨서 비워줄 수 있습니다.
+    FOR i := 1 TO 4 DO
+        GVL_Vision.Encoder_DATA01[GVl_Vision.DATA_COUNT] := GVL_Vision.Encoder_DATA01[GVl_Vision.DATA_COUNT+1];
+    END_FOR
+    GVL_Vision.Encoder_DATA01[5] := 0; // 마지막 칸 초기화
+    
+END_IF
+
+
+GVL_Axis02.Torque_Data := Axis02_Command.Axis02.NcToPlc.ActTorque;
+GVL_Axis03.Torque_Data := Axis03_Command.Axis03.NcToPlc.ActTorque;
+GVL_Axis04.Torque_Data := Axis04_Command.Axis04.NcToPlc.ActTorque;
+GVL_Axis01.Torque_Data := Axis01_Command.Axis01.NcToPlc.ActTorque;
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="Target_Distance">
+      <LineId Id="172" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="310" Count="1" />
+      <LineId Id="353" Count="6" />
+      <LineId Id="312" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="246" Count="12" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="259" Count="11" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="294" Count="1" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="296" Count="3" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="280" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

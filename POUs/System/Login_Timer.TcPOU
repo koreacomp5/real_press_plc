@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Login_Timer" Id="{9d27ba2d-c69c-4539-ad55-2aec6ca7de6e}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Login_Timer
+VAR_INPUT
+	tLoginTimer : TON;	
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(* 로그인 상태에서 타이머 동작 *)
+IF GVL_System.Login THEN 
+	GVL_System.LoginLamp := TRUE;	
+END_IF
+
+tLoginTimer(
+    IN := GVL_System.LoginLamp,
+    PT := T#30m
+);
+
+(* 30분 경과 시 자동 로그아웃 *)
+IF tLoginTimer.Q THEN
+    GVL_System.LoginLamp := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="Login_Timer">
+      <LineId Id="6" Count="13" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

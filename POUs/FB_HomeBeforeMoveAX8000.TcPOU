@@ -1,0 +1,538 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_HomeBeforeMoveAX8000" Id="{db049c75-b748-4d76-90e3-7e89ca15ef7a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_HomeBeforeMoveAX8000
+VAR_IN_OUT
+	AXIS : AXIS_REF;
+END_VAR
+VAR_INPUT
+	Exectue : BOOL;	
+	Homsensor : BOOL;
+	LimitSensor : BOOL;
+	HomePosition : LREAL;
+	Channel : UINT :=1;
+
+	// 0=FALSE, 1= TRUE
+	InvertHomeSensorSearchDirection : WORD;
+	// Velo
+	HomeSensorVelocity : LREAL:=1;
+	// 0=FALSE, 1= TRUE
+	InvertSyncImpulseSearchDirection : WORD;
+	// Velo
+	SyncImpulseVelocity : LREAL:=1;
+	
+	// 0=FALSE, 1= TRUE
+	InvertBeforeMoveDirection: WORD;
+	// Velo
+	BeforeMoveVelocity : LREAL:=1;
+	
+END_VAR
+VAR_OUTPUT
+	BUSY : BOOL;
+	Error : BOOL;
+	ErrorID : UDINT;
+	ErrorStep : UDINT;
+END_VAR
+VAR
+	//fbMC_WriteBoolParameter: MC_WriteBoolParameter;
+	//fbMC_WriteParameter: MC_WriteParameter;
+	//fbMC_MoveAbsolute: MC_MoveAbsolute;
+	fbMC_MoveRelative: MC_MoveRelative;
+	fbMC_Halt: MC_Halt;
+	fbMC_Home : MC_Home;
+	step: UDINT;
+	fbADSWRITE_HomeSendsorBool: ADSWRITE;
+	fbADSWRITE_HomeSendsorVeloLREAL: ADSWRITE;
+	fbADSWRITE_SyncImpulseBool: ADSWRITE;
+	fbADSWRITE_SyncImpulseVeloLREAL: ADSWRITE;
+	fbR_TRIG: R_TRIG;
+	
+	NCPort: T_AmsPort := 501;
+	fbTON: TON;
+	WarningByte : BYTE:=2;
+	ErrorByte : BYTE:=0;
+	fbFB_CoEWrite_P_w: FB_CoEWrite;
+	fbFB_CoEWrite_P_e: FB_CoEWrite;
+	fbFB_CoEWrite_N_w: FB_CoEWrite;
+	fbFB_CoEWrite_N_e: FB_CoEWrite;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+CASE step OF
+	0:
+		fbR_TRIG(CLK:=Exectue);
+		IF fbR_TRIG.Q THEN
+			step:=10;
+			fbMC_MoveRelative.Execute:=FALSE;
+			fbMC_Home.Execute:=FALSE;
+			fbMC_Halt.Execute:=FALSE;
+			fbADSWRITE_HomeSendsorBool.WRITE:=FALSE;
+			fbADSWRITE_HomeSendsorVeloLREAL.WRITE:=FALSE;
+			fbADSWRITE_SyncImpulseBool.WRITE:=FALSE;
+			fbADSWRITE_SyncImpulseVeloLREAL.WRITE:=FALSE;
+			fbFB_CoEWrite_P_w.Execute:=FALSE;
+			fbFB_CoEWrite_N_w.Execute:=FALSE;
+			fbFB_CoEWrite_P_e.Execute:=FALSE;
+			fbFB_CoEWrite_N_e.Execute:=FALSE;
+			BUSY :=FALSE;
+			Error :=FALSE;
+			ErrorID :=0;
+			ErrorStep :=0;
+		END_IF
+	10:
+		fbFB_CoEWrite_P_w.Execute:=TRUE;
+		fbFB_CoEWrite_N_w.Execute:=TRUE;
+		step:=11;
+	11:
+		IF fbFB_CoEWrite_P_w.Busy=FALSE AND fbFB_CoEWrite_N_w.Busy=FALSE THEN
+			IF fbFB_CoEWrite_P_w.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_P_w.AdsErrId,_ErrorStep:=step);
+				step:=13;
+			ELSIF fbFB_CoEWrite_N_w.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_N_w.AdsErrId,_ErrorStep:=step);
+				step:=13;
+			ELSE
+				fbFB_CoEWrite_P_w.Execute:=FALSE;
+				fbFB_CoEWrite_N_w.Execute:=FALSE;
+				step:=15;
+			END_IF
+		END_IF
+	
+	//return start
+	13:
+		fbFB_CoEWrite_P_e.Execute:=TRUE;
+		fbFB_CoEWrite_N_e.Execute:=TRUE;
+		step:=14;
+	14:
+		IF fbFB_CoEWrite_P_e.Busy=FALSE AND fbFB_CoEWrite_N_e.Busy=FALSE THEN
+			IF fbFB_CoEWrite_P_e.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_P_e.AdsErrId,_ErrorStep:=step);
+			ELSIF fbFB_CoEWrite_N_e.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_N_e.AdsErrId,_ErrorStep:=step);
+			ELSE
+				fbFB_CoEWrite_P_e.Execute:=FALSE;
+				fbFB_CoEWrite_N_e.Execute:=FALSE;
+				step:=0;
+			END_IF
+		END_IF
+	//return end
+
+	15:
+		IF InvertBeforeMoveDirection=1 THEN
+			fbMC_MoveRelative.Distance := -1000000;
+		ELSE
+			fbMC_MoveRelative.Distance := 1000000;
+		END_IF
+		fbMC_MoveRelative.Velocity:=BeforeMoveVelocity;
+		fbMC_MoveRelative.Execute:=TRUE;
+		step:=20;
+	20:
+		IF fbMC_MoveRelative.Error=TRUE THEN;
+			M_Error(_ErrorID:=fbMC_MoveRelative.ErrorID,_ErrorStep:=step);
+			fbMC_MoveRelative.Execute:=FALSE;
+			step:=13; // warning -> error
+		ELSE
+			IF LimitSensor=TRUE OR ABS(AXIS.NcToPlc.PosDiff)>3 THEN
+				//MC_SetAcceptBlockedDriveSignal(Axis := AXIS, Enable := FALSE);
+				fbMC_Halt.Execute:=TRUE;
+				step:=30;
+			END_IF
+		END_IF
+		
+	30:
+		IF fbMC_Halt.Busy=FALSE THEN
+			IF fbMC_Halt.Error=TRUE THEN
+				M_Error(_ErrorID:=fbMC_Halt.ErrorID,_ErrorStep:=step);
+				fbMC_Halt.Execute:=FALSE;
+			ELSE
+				fbMC_MoveRelative.Execute:=FALSE;
+				fbMC_Halt.Execute:=FALSE;
+				step:=200;
+			END_IF
+		END_IF
+		
+	200:
+		fbADSWRITE_HomeSendsorBool.WRITE:=TRUE;
+		M_NextStep10();
+	210:
+		IF fbADSWRITE_HomeSendsorBool.BUSY THEN
+			IF fbADSWRITE_HomeSendsorBool.ERR=TRUE THEN
+				M_Error(_ErrorID:=fbADSWRITE_HomeSendsorBool.ERRID,_ErrorStep:=step);
+			ELSE
+				fbADSWRITE_HomeSendsorBool.WRITE:=FALSE;
+				M_NextStep10();
+			END_IF
+		END_IF
+		
+	220:
+		fbADSWRITE_HomeSendsorVeloLREAL.WRITE:=TRUE;
+		M_NextStep10();
+	230:
+		IF fbADSWRITE_HomeSendsorVeloLREAL.BUSY THEN
+			IF fbADSWRITE_HomeSendsorVeloLREAL.ERR=TRUE THEN
+				M_Error(_ErrorID:=fbADSWRITE_HomeSendsorVeloLREAL.ERRID,_ErrorStep:=step);
+			ELSE
+				fbADSWRITE_HomeSendsorVeloLREAL.WRITE:=FALSE;
+				M_NextStep10();
+			END_IF
+		END_IF
+	
+	240:
+		fbADSWRITE_SyncImpulseBool.WRITE:=TRUE;
+		M_NextStep10();
+	250:
+		IF fbADSWRITE_SyncImpulseBool.BUSY THEN
+			IF fbADSWRITE_SyncImpulseBool.ERR=TRUE THEN
+				M_Error(_ErrorID:=fbADSWRITE_SyncImpulseBool.ERRID,_ErrorStep:=step);
+			ELSE
+				fbADSWRITE_SyncImpulseBool.WRITE:=FALSE;
+				M_NextStep10();
+			END_IF
+		END_IF
+	
+	260:
+		fbADSWRITE_SyncImpulseVeloLREAL.WRITE:=TRUE;
+		M_NextStep10();
+	270:
+		IF fbADSWRITE_SyncImpulseVeloLREAL.BUSY THEN
+			IF fbADSWRITE_SyncImpulseVeloLREAL.ERR=TRUE THEN
+				M_Error(_ErrorID:=fbADSWRITE_SyncImpulseVeloLREAL.ERRID,_ErrorStep:=step);
+			ELSE
+				fbADSWRITE_SyncImpulseVeloLREAL.WRITE:=FALSE;
+				M_NextStep10();
+			END_IF
+		END_IF
+	280:
+		fbTON(IN:=TRUE,PT:=T#0.5S);
+		IF fbTON.q THEN
+			fbTON(IN:=FALSE);
+			IF fbADSWRITE_HomeSendsorBool.ERR=TRUE THEN
+				M_Error(_ErrorID:=fbADSWRITE_HomeSendsorBool.ERRID,_ErrorStep:=210);
+			ELSIF fbADSWRITE_HomeSendsorVeloLREAL.ERR=TRUE THEN;
+				M_Error(_ErrorID:=fbADSWRITE_HomeSendsorVeloLREAL.ERRID,_ErrorStep:=230);
+			ELSIF fbADSWRITE_SyncImpulseBool.ERR=TRUE THEN;
+				M_Error(_ErrorID:=fbADSWRITE_SyncImpulseBool.ERRID,_ErrorStep:=250);
+			ELSIF fbADSWRITE_SyncImpulseVeloLREAL.ERR=TRUE THEN;
+				M_Error(_ErrorID:=fbADSWRITE_SyncImpulseVeloLREAL.ERRID,_ErrorStep:=270);
+			ELSE
+				step:=300;
+			END_IF
+		END_IF
+	
+	300:
+		fbMC_Home.Execute:=TRUE;
+		M_NextStep10();
+	310:
+		IF fbMC_Home.Busy=FALSE THEN
+			fbTON(IN:=TRUE,PT:=T#0.5S);
+			IF fbTON.q THEN
+				fbTON(IN:=FALSE);
+				IF fbMC_Home.Error=TRUE THEN
+					M_Error(_ErrorID:=fbMC_Home.ErrorID,_ErrorStep:=step);
+				ELSE
+					step:=320;
+				END_IF
+				fbMC_Home.Execute:=FALSE;
+			END_IF
+		END_IF
+	320:
+		fbFB_CoEWrite_P_e.Execute:=TRUE;
+		fbFB_CoEWrite_N_e.Execute:=TRUE;
+		step:=330;
+	330:
+		IF fbFB_CoEWrite_P_e.Busy=FALSE AND fbFB_CoEWrite_N_e.Busy=FALSE THEN
+			IF fbFB_CoEWrite_P_e.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_P_e.AdsErrId,_ErrorStep:=step);
+			ELSIF fbFB_CoEWrite_N_e.Error THEN
+				M_Error(_ErrorID:=fbFB_CoEWrite_N_e.AdsErrId,_ErrorStep:=step);
+			ELSE
+				fbFB_CoEWrite_P_e.Execute:=FALSE;
+				fbFB_CoEWrite_N_e.Execute:=FALSE;
+				step:=0;
+			END_IF
+		END_IF
+END_CASE
+BUSY := Step<>0;
+
+	
+fbADSWRITE_HomeSendsorBool(
+	PORT:= NCPort, 
+	IDXGRP:= 16#5000+AXIS.NcToPlc.AxisId, 
+	IDXOFFS:= 16#101, 
+	LEN:= SIZEOF(InvertHomeSensorSearchDirection), 
+	SRCADDR:= ADR(InvertHomeSensorSearchDirection));
+fbADSWRITE_HomeSendsorVeloLREAL(
+	PORT:= NCPort, 
+	IDXGRP:= 16#4000+AXIS.NcToPlc.AxisId, 
+	IDXOFFS:= 16#6, 
+	LEN:= SIZEOF(HomeSensorVelocity), 
+	SRCADDR:= ADR(HomeSensorVelocity));
+fbADSWRITE_SyncImpulseBool(
+	PORT:= NCPort, 
+	IDXGRP:= 16#5000+AXIS.NcToPlc.AxisId, 
+	IDXOFFS:= 16#102, 
+	LEN:= SIZEOF(InvertSyncImpulseSearchDirection), 
+	SRCADDR:= ADR(InvertSyncImpulseSearchDirection));
+fbADSWRITE_SyncImpulseVeloLREAL(
+	PORT:= NCPort, 
+	IDXGRP:= 16#4000+AXIS.NcToPlc.AxisId, 
+	IDXOFFS:= 16#7, 
+	LEN:= SIZEOF(SyncImpulseVelocity), 
+	SRCADDR:= ADR(SyncImpulseVelocity));
+	
+fbMC_MoveRelative(
+	Axis:= AXIS, 
+	Execute:= , 
+	Distance:= , 
+	Velocity:= , 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+fbMC_Halt(
+	Axis:= AXIS, 
+	Execute:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+fbMC_Home(
+	Axis:= AXIS, 
+	Execute:= , 
+	Position:= HomePosition, 
+	HomingMode:= , 
+	BufferMode:= , 
+	Options:= , 
+	bCalibrationCam:= Homsensor, 
+	Done=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+IF Channel=1 THEN
+	fbFB_CoEWrite_P_w(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3002, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(WarningByte), 
+		BufLen:= SIZEOF(WarningByte));
+	fbFB_CoEWrite_P_e(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3002, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(ErrorByte), 
+		BufLen:= SIZEOF(ErrorByte));
+	
+	fbFB_CoEWrite_N_w(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3003, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(WarningByte), 
+		BufLen:= SIZEOF(WarningByte));
+	fbFB_CoEWrite_N_e(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3003, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(ErrorByte), 
+		BufLen:= SIZEOF(ErrorByte));
+ELSIF Channel=2 THEN
+	fbFB_CoEWrite_P_w(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3402, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(WarningByte), 
+		BufLen:= SIZEOF(WarningByte));
+	fbFB_CoEWrite_P_e(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3402, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(ErrorByte), 
+		BufLen:= SIZEOF(ErrorByte));
+	
+	fbFB_CoEWrite_N_w(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3403, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(WarningByte), 
+		BufLen:= SIZEOF(WarningByte));
+	fbFB_CoEWrite_N_e(
+		Axis:= AXIS, 
+		NetId:= , 
+		Index:= 16#3403, 
+		SubIndex:= 16#03, 
+		pSrcBuf:= ADR(ErrorByte), 
+		BufLen:= SIZEOF(ErrorByte));
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="M_Error" Id="{70ccf170-d269-4f9f-8f57-2818b49b237c}">
+      <Declaration><![CDATA[METHOD M_Error : BOOL
+VAR_INPUT
+	_ErrorID : UDINT;
+	_ErrorStep: UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[step:=0;
+Error :=TRUE;
+ErrorID := _ErrorID;
+ErrorStep := _ErrorStep;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_NextStep10" Id="{0c4e2524-609d-436e-bec0-075202464a26}">
+      <Declaration><![CDATA[METHOD M_NextStep10 : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[step:=step+10;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_HomeBeforeMoveAX8000">
+      <LineId Id="27" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="145" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="424" Count="2" />
+      <LineId Id="680" Count="3" />
+      <LineId Id="167" Count="3" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="658" Count="5" />
+      <LineId Id="669" Count="0" />
+      <LineId Id="685" Count="0" />
+      <LineId Id="670" Count="0" />
+      <LineId Id="672" Count="0" />
+      <LineId Id="686" Count="0" />
+      <LineId Id="676" Count="1" />
+      <LineId Id="674" Count="0" />
+      <LineId Id="684" Count="0" />
+      <LineId Id="668" Count="0" />
+      <LineId Id="664" Count="0" />
+      <LineId Id="708" Count="1" />
+      <LineId Id="689" Count="1" />
+      <LineId Id="692" Count="5" />
+      <LineId Id="699" Count="1" />
+      <LineId Id="702" Count="4" />
+      <LineId Id="665" Count="0" />
+      <LineId Id="710" Count="0" />
+      <LineId Id="707" Count="0" />
+      <LineId Id="666" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="112" Count="1" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="171" Count="1" />
+      <LineId Id="481" Count="0" />
+      <LineId Id="711" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="305" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="730" Count="0" />
+      <LineId Id="177" Count="2" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="482" Count="0" />
+      <LineId Id="181" Count="0" />
+      <LineId Id="187" Count="2" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="180" Count="0" />
+      <LineId Id="394" Count="0" />
+      <LineId Id="371" Count="11" />
+      <LineId Id="395" Count="0" />
+      <LineId Id="383" Count="10" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="396" Count="25" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="427" Count="1" />
+      <LineId Id="444" Count="0" />
+      <LineId Id="432" Count="0" />
+      <LineId Id="443" Count="0" />
+      <LineId Id="435" Count="0" />
+      <LineId Id="442" Count="0" />
+      <LineId Id="436" Count="0" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="437" Count="0" />
+      <LineId Id="440" Count="0" />
+      <LineId Id="438" Count="1" />
+      <LineId Id="434" Count="0" />
+      <LineId Id="431" Count="0" />
+      <LineId Id="445" Count="2" />
+      <LineId Id="464" Count="0" />
+      <LineId Id="906" Count="11" />
+      <LineId Id="468" Count="0" />
+      <LineId Id="734" Count="14" />
+      <LineId Id="731" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="325" Count="7" />
+      <LineId Id="353" Count="1" />
+      <LineId Id="335" Count="3" />
+      <LineId Id="351" Count="1" />
+      <LineId Id="341" Count="0" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="343" Count="1" />
+      <LineId Id="355" Count="1" />
+      <LineId Id="347" Count="1" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="324" Count="0" />
+      <LineId Id="118" Count="14" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="148" Count="11" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="449" Count="12" />
+      <LineId Id="565" Count="0" />
+      <LineId Id="629" Count="13" />
+      <LineId Id="591" Count="0" />
+      <LineId Id="643" Count="14" />
+      <LineId Id="809" Count="28" />
+      <LineId Id="806" Count="0" />
+      <LineId Id="808" Count="0" />
+      <LineId Id="606" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HomeBeforeMoveAX8000.M_Error">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HomeBeforeMoveAX8000.M_NextStep10">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

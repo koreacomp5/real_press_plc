@@ -1,0 +1,215 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="Vision_ST" Id="{eed554c4-fc1a-4baf-9f60-2c5a21e38ff5}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Vision_ST
+VAR
+    Data_Initial_Trig              : R_TRIG;
+    All_Initial_Trig          : R_TRIG;
+    Vision_Start_Sensor_Trig  : F_TRIG;
+    Press_Start_Trig          : R_TRIG;
+	Vision_OK_Trig   : R_TRIG;  // 추가
+    Vision_NG_Trig   : R_TRIG;  // 추가
+    
+    Always_ON                 : BOOL := TRUE;
+    Always_OFF                : BOOL := FALSE;
+    
+    TON_1                     : TON;
+    Time_Data_1               : LREAL;
+    DATA                      : LREAL;
+    
+    CCTV                      : TON;
+    Work_End_Position_Set     : BOOL;
+    GVL_Vision_ON_Delay_Time  : INT;
+    test005                   : BOOL;
+    Vision_Delay              : BOOL;
+    Vision_Delay_TM           : TON;
+    test01                    : BOOL;
+    Vision_NG_Timer           : TON;
+    Vision_OFF_Delay          : TON;
+    TON_0                     : TON;
+	
+	Trig_ON 				  :	BOOL;
+	
+	Data_Initial : BOOL;
+	Status: BOOL;
+	NO: UINT;
+	
+	Vision_off_500m_later_Trig : F_TRIG;         // Vision_Start_Sensor의 falling edge 감지
+    Vision_off_300ms_TON : TON;              // 0.3초 딜레이 타이머
+END_VAR
+
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[GVL_Vision.HaertBeat_ON := FALSE;
+GVL_Vision.HaertBeat_OFF := FALSE;
+Data_Initial_Trig(CLK := Data_Initial);
+All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
+Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Press_Start_Trig(CLK := GVL_Motion_Step.Press_Start);
+Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
+Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
+Vision_off_500m_later_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Vision_off_300ms_TON(IN := GVL_System.Vision_Start_Sensor, PT := T#100MS);
+
+
+IF Vision_off_300ms_TON.Q THEN
+	Trig_ON := TRUE;
+END_IF
+
+IF Trig_ON THEN
+	IF GVL_Vision.Cam_Trigger THEN
+		Trig_ON := FALSE;
+	END_IF
+END_IF
+// ===== 런 10: Fiber_Sener_Sensing=====
+IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Vision_Start_Sensor_Trig.Q AND Trig_ON THEN
+    GVL_Vision.Encoder_DATA03 := GVL_Encoder.Real_Position;
+    Vision_Delay := TRUE;
+END_IF
+
+// ===== 런 14: Cam_Trigger =====
+GVL_Vision.Cam_Trigger := (GVL_System.Auto_Mode AND Vision_Delay AND GVL_Vision.Encoder_DATA03 + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position)   OR (NOT GVL_System.Auto_Mode AND GVL_System.Manual_Cam_Trigger) OR( 
+GVL_System.Manual_Mode AND GVL_Mastering.Cam_Trig);
+
+(*GVL_Vision.Cam_Trigger := 
+    (Vision_Delay AND 
+     (GVL_Vision.Encoder_DATA03 + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position))
+    OR (GVL_System.Manual_Mode AND GVL_System.Manual_Cam_Trigger)
+    OR (GVL_System.Manual_Mode AND GVL_Mastering.Cam_Trig);*)
+
+// ===== 런 15: Vision OFF Delay 타이머 =====
+Vision_OFF_Delay(IN := GVL_Vision.Cam_Trigger, PT := T#0.1S);
+IF Vision_OFF_Delay.Q THEN  Vision_Delay := FALSE; END_IF	
+
+// ===== 런 6: Target X 위치 계산 =====
+IF GVL_Vision.Data_Copy_Comp THEN
+    DATA := GVL_Encoder.Real_Position - GVL_Vision.Encoder_DATA01[1];
+    GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - DATA;
+END_IF
+
+
+// Status 조건
+Status := 
+    ((GVL_Vision.Run AND GVL_System.Auto_Mode) OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
+    AND GVL_System.Safety_ALL_OK;
+
+// 코일 초기화
+
+IF Status   THEN
+    IF NO = 0 THEN
+        IF (Vision_OK_Trig.Q OR Vision_NG_Trig.Q) AND GVL_Vision.Run THEN
+            NO := 1;
+        END_IF
+    END_IF
+
+    IF NO = 1 THEN
+        IF NOT GVL_Vision.Data_Copy_Comp THEN
+            IF  GVL_Vision.Vision_OK THEN
+                NO := 5;
+            ELSIF GVL_Vision.Vision_NG THEN
+               NO := 15;
+            END_IF
+        END_IF
+    END_IF
+
+    IF NO = 5 AND NOT GVL_Motion_Step.Press_Start THEN
+		GVL_Vision.Data_Buffer_X := GVL_Vision.Data_Read_X;
+		GVL_Vision.Data_Buffer_Y := GVL_Vision.Data_Read_Y;
+		GVL_Vision.Data_Buffer_R := GVL_Vision.Data_Read_R;
+		GVL_Vision.Data_Copy_Comp := TRUE;
+        NO := 15;
+    END_IF
+
+    IF NO = 15 THEN
+        Data_Initial := TRUE;
+        NO := 0;
+    END_IF
+
+END_IF
+
+
+// ===== 런 3: Vision 데이터 초기화 =====
+IF Data_Initial OR GVL_System.All_Initial THEN
+    GVL_Vision.Data_Read_X := 0;
+    GVL_Vision.Data_Read_Y := 0;
+    GVL_Vision.Data_Read_R := 0;
+    GVL_Vision.Vision_OK := FALSE;
+    GVL_Vision.Vision_NG := FALSE;
+	Vision_Delay := FALSE;
+	Data_Initial := FALSE;
+END_IF
+
+// ===== 런 4: 속도/프레임 초기화 =====
+IF GVL_Motion_Step.Axis02_Stop OR GVL_System.All_Initial THEN
+    GVL_Vision.Average_Speed := 0;
+    GVL_Vision.TotalSpeed := 0;
+    GVL_Vision.FrameCount := 0;
+    GVL_Vision.Get_Frame := 0;
+    DATA := 0;
+END_IF
+
+
+// ===== 런 7: 버퍼 초기화 =====
+IF All_Initial_Trig.Q THEN
+    GVL_Vision.Data_Buffer_X := 0;
+    GVL_Vision.Data_Buffer_Y := 0;
+    GVL_Vision.Data_Buffer_R := 0;
+    GVL_Vision.Data_Copy_Comp := FALSE;
+    GVL_Vision.Get_Frame_Time := 0;
+    GVL_Vision.Target_X_Real_Position_Data := 0;
+    GVL_Vision.Press_Speed := 0;
+    GVL_Vision.Travel_Distance := 0;
+    GVL_Vision.Moving_Time := 0;
+    //Time_Data_1 := 0;
+END_IF
+
+// ===== 런 16: Vision Light ON =====
+GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON;
+
+
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="Vision_ST">
+      <LineId Id="2009" Count="8" />
+      <LineId Id="2064" Count="1" />
+      <LineId Id="2063" Count="0" />
+      <LineId Id="2022" Count="0" />
+      <LineId Id="2066" Count="1" />
+      <LineId Id="2072" Count="0" />
+      <LineId Id="2071" Count="0" />
+      <LineId Id="2073" Count="0" />
+      <LineId Id="2075" Count="1" />
+      <LineId Id="2074" Count="0" />
+      <LineId Id="2023" Count="3" />
+      <LineId Id="1579" Count="0" />
+      <LineId Id="1766" Count="1" />
+      <LineId Id="1794" Count="0" />
+      <LineId Id="2115" Count="1" />
+      <LineId Id="2118" Count="3" />
+      <LineId Id="2117" Count="0" />
+      <LineId Id="1772" Count="0" />
+      <LineId Id="1786" Count="1" />
+      <LineId Id="1773" Count="0" />
+      <LineId Id="1771" Count="0" />
+      <LineId Id="1749" Count="4" />
+      <LineId Id="1842" Count="0" />
+      <LineId Id="1853" Count="6" />
+      <LineId Id="1862" Count="31" />
+      <LineId Id="1596" Count="0" />
+      <LineId Id="1598" Count="7" />
+      <LineId Id="1809" Count="0" />
+      <LineId Id="1903" Count="0" />
+      <LineId Id="1606" Count="0" />
+      <LineId Id="1614" Count="8" />
+      <LineId Id="1630" Count="2" />
+      <LineId Id="1634" Count="10" />
+      <LineId Id="1597" Count="0" />
+      <LineId Id="1647" Count="0" />
+      <LineId Id="1505" Count="2" />
+      <LineId Id="1814" Count="1" />
+      <LineId Id="1438" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_HMI" Id="{fc8f81a8-a050-4141-94f2-46c3cdef05c1}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+
+// HMI Screen NO
+    NowScreen_NO            :    INT    ;       // 현재 화면 위치 NO
+	ChangeScreen_NO         :    INT    ;       // PLC 요구 화면 NO
+
+	
+// HMI 화면 전환	
+	AXIS01					:	BOOL	;
+	AXIS02					:	BOOL	;
+	AXIS03					:	BOOL	;
+	AXIS04					:	BOOL	;
+	
+	AXIS01_LAMP				:	BOOL	;
+	AXIS02_LAMP				:	BOOL	;
+	AXIS03_LAMP				:	BOOL	;
+	AXIS04_LAMP				:	BOOL	;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

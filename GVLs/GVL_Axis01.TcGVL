@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Axis01" Id="{60549591-4bf9-441e-bd57-a08f4d1429f6}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+//Motor_Status								
+    Real_Position						:	LREAL	;		// 실제 위치					
+    Real_Velocity						:	LREAL	;		// 실제 속도					
+	Busy	   						 	:	BOOL	;		// 동작중			
+    Homed       					    :	BOOL	;		// 홈 완료 여부						
+    Error								:	BOOL	;		// 에러 발생 여부						
+    ErrorID								:	UDINT	;		// 에러 코드						
+	StandStill							:	BOOL	;		// 동작가능(축정지,작업명령없음,알람없음)	
+	Error_Stop							:	BOOL	;		// 에러 스탑(MC_Reset으로만 해제 가능)
+	Power_ON							:	BOOL	;			
+	Stop								:	BOOL	;
+	Ready								:	BOOL	;		//	모터 Ready
+	Home_OK								:	BOOL	;		//	모터 홈 동작 완료
+		
+//Interlock
+	Interlock							:	BOOL	:=	FALSE	;
+//Motor_Bit		
+	Moving_Command						:	BOOL	;
+//Motor_Manual
+	M_Home_ORG							:	BOOL	;
+	M_Home_Pos_Move						:	BOOL	;
+	M_Wait_Pos_Move						:	BOOL	;
+	M_Target_Pos_Move					:	BOOL	;
+	M_Work_End_Pos_Move					:	BOOL	;
+	M_Maint_Pos_Move					:	BOOL	;
+	M_Tool_Change_Pos_Move				:	BOOL	;
+	M_Calibration_Pos_Move				:	BOOL	;
+//Motor_Auto
+	A_Home_Pos_Move						:	BOOL	;
+	A_Wait_Pos_Move						:	BOOL	;
+	A_Target_Pos_Move					:	BOOL	;
+	A_Work_End_Pos_Move					:	BOOL	;
+	A_Maint_Pos_Move					:	BOOL	;
+	A_Tool_Change_Pos_Move				:	BOOL	;
+	A_Calibration_Pos_Move				:	BOOL	;
+	
+//Interlock
+	Home_ORG_Interlock					:	BOOL	;
+	Home_Pos_Interlock					:	BOOL	;
+	Wait_Pos_Interlock					:	BOOL	;
+	Target_Pos_Interlock				:	BOOL	;
+	Work_End_Pos_Interlock				:	BOOL	;
+	Maint_Pos_Interlock					:	BOOL	;
+	Tool_Change_Pos_Interlock			:	BOOL	;
+	Calibration_Pos_Interlock			:	BOOL	;	
+	
+	
+//Motor_Sensor								
+	Home_Sensor  		AT%I*	 		:	 BOOL	;				
+	CW_Sensor   		AT%I*			:	 BOOL	;		//Motor +Limit		
+	CCW_Sensor  		AT%I*			:	 BOOL	;		//Motor -Limit	
+		
+//Motor_Position								
+	Home_Position						:   BOOL	;						
+	Wait_Position						:   BOOL	;						
+	Target_Position						:   BOOL	;											
+	Work_End_Position					:   BOOL	;
+	Maint_Position						:	BOOL	;
+	Tool_Change_Position				:	BOOL	;
+	Calibration_Position				:	BOOL	;		
+
+//HMI
+	HMI_Home_PB							:	BOOL	;
+	HMI_Home_Pos_Move_PB				:	BOOL	;
+	HMI_Wait_Pos_Move_PB				:	BOOL	;
+	HMI_Target_Pos_Move_PB				:	BOOL	;
+	HMI_Work_End_Pos_Move_PB			:	BOOL	;
+	HMI_Maint_Pos_Move_PB				:	BOOL	;
+	HMI_Tool_Change_Move_PB				:	BOOL	;
+	HMI_Calibration_Move_PB				:	BOOL	;
+	Jog_Forward_PB						:	BOOL	;
+	Jog_Backward_PB						:	BOOL	;
+	Stop_PB								:	BOOL	;
+// Digital Input // P Limit, N Limit
+	Digital_Input AT%I*					:	UDINT	;
+	
+Maint_Position_Data: LREAL;	Power_ON_Delay: BOOL;
+	Test_Power_ON: BOOL;
+	Torque_Data : LREAL;
+END_VAR
+VAR_GLOBAL PERSISTENT
+//Motor_Position_Data								
+	Home_Position_Data					: 	LREAL	;					
+	Wait_Position_Data					: 	LREAL	;					
+	Target_Position_Data				: 	LREAL	;							
+	Work_End_Position_Data				:	LREAL	;	
+	
+	Tool_Change_Position_Data			:	LREAL	;
+	Calibration_Position_Data			:	LREAL	;
+//Motor_Speed_Data
+	Work_Speed							:	LREAL	;
+	Jog_Speed							:	LREAL	;
+	Tool_Change_Speed					: 	LREAL	;
+	Calibration_Speed					:	LREAL	;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

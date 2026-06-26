@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="GOST" Id="{8e8955d8-0a70-45db-9179-5bb31f043665}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM GOST
+VAR
+	all_work_end : BOOL;
+	ton01 : TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[all_work_end := GVL_Axis01.Work_End_Position AND GVL_Axis02.Work_End_Position AND GVL_Axis03.Work_End_Position AND GVL_Axis04.Work_End_Position;
+TON01(IN := GVL_System.ALL_Wait_Position , PT := T#200MS);
+IF GVL_System.GOST_MODE AND GVL_System.ALL_Wait_Position AND TON01.Q THEN
+	GVL_Axis01.M_Work_End_Pos_Move := TRUE;
+	GVL_Axis02.M_Work_End_Pos_Move := TRUE;
+	GVL_Axis03.M_Work_End_Pos_Move := TRUE;	
+	GVL_Axis04.M_Work_End_Pos_Move := TRUE;
+	
+	
+END_IF
+
+IF all_work_end AND GVL_System.GOST_MODE THEN
+		GVL_Axis01.M_Wait_Pos_Move := TRUE;
+		GVL_Axis02.M_Wait_Pos_Move := TRUE;
+		GVL_Axis03.M_Wait_Pos_Move := TRUE;	
+		GVL_Axis04.M_Wait_Pos_Move := TRUE;
+	END_IF
+	]]></ST>
+    </Implementation>
+    <LineIds Name="GOST">
+      <LineId Id="15" Count="1" />
+      <LineId Id="5" Count="1" />
+      <LineId Id="9" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="12" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="25" Count="6" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
