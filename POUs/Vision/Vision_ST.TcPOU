@@ -34,8 +34,7 @@ VAR
 	Status: BOOL;
 	NO: UINT;
 	
-	Vision_off_500m_later_Trig : F_TRIG;         // Vision_Start_Sensor의 falling edge 감지
-    Vision_off_300ms_TON : TON;              // 0.3초 딜레이 타이머
+    Vision_off_100ms_TON : TON;              // 센서 100ms 유지 감지 딜레이 타이머
 END_VAR
 
 
@@ -49,11 +48,10 @@ Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
 Press_Start_Trig(CLK := GVL_Motion_Step.Press_Start);
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
-Vision_off_500m_later_Trig(CLK := GVL_System.Vision_Start_Sensor);
-Vision_off_300ms_TON(IN := GVL_System.Vision_Start_Sensor, PT := T#100MS);
+Vision_off_100ms_TON(IN := GVL_System.Vision_Start_Sensor, PT := T#100MS);
 
 
-IF Vision_off_300ms_TON.Q THEN
+IF Vision_off_100ms_TON.Q THEN
 	Trig_ON := TRUE;
 END_IF
 
