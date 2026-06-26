@@ -8,7 +8,6 @@ VAR
     Vision_OK_Trig           : R_TRIG;  // 추가
     Vision_NG_Trig           : R_TRIG;  // 추가
     Cam_Trigger_Trig         : R_TRIG;  // 카메라 트리거 상승엣지 (위치 캡처용)
-    Trig_Travel              : LREAL;   // 카메라 트리거 이후 이동량 (Target X 보정용)
     Vision_Delay             : BOOL;
     Vision_OFF_Delay         : TON;
     Trig_ON                  : BOOL;
@@ -58,10 +57,9 @@ END_IF
 Vision_OFF_Delay(IN := GVL_Vision.Cam_Trigger, PT := T#0.1S);
 IF Vision_OFF_Delay.Q THEN Vision_Delay := FALSE; END_IF
 
-// ===== 런 6: Target X 위치 계산 =====
+// ===== 런 6: Target X 위치 계산 (캠트리거 위치 기준 이동보정) =====
 IF GVL_Vision.Data_Copy_Comp THEN
-    Trig_Travel := GVL_Encoder.Real_Position - GVL_Vision.Cam_Trig_Position;
-    GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - Trig_Travel;
+    GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - GVL_Vision.Cam_Trig_Position);
 END_IF
 
 // Status 조건
@@ -118,7 +116,6 @@ IF GVL_Motion_Step.Axis02_Stop OR GVL_System.All_Initial THEN
     GVL_Vision.TotalSpeed := 0;
     GVL_Vision.FrameCount := 0;
     GVL_Vision.Get_Frame := 0;
-    Trig_Travel := 0;
 END_IF
 
 // ===== 런 7: 버퍼 초기화 =====
