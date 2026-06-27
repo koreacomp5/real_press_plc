@@ -4,19 +4,15 @@
     <Declaration><![CDATA[PROGRAM Move_Command
 VAR
 	Motor_Move_Trig          : R_TRIG;
-	vis_x :  LREAL ;
-	vis_y :  LREAL ;
-	vis_r :  LREAL ;
-	vis_z :  LREAL ;
-	
+
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[
-vis_r := GVL_Vision.Axis01_Calibration_Position_Data;
-vis_x := GVL_Vision.Axis02_Calibration_Position_Data;
-vis_y := GVL_Vision.Axis03_Calibration_Position_Data;
-vis_z := GVL_Vision.Axis04_Calibration_Position_Data;
+
+IF GVL_Calibration.Calibration_comp THEN
+    GVL_Calibration.All_Motor_Wait_Pos_Moving := TRUE;  // (S) Set
+END_IF
 
 
 Motor_Move_Trig(CLK := GVL_Calibration.Motor_Move);
