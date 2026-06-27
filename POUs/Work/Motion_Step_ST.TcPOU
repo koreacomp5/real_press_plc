@@ -72,7 +72,7 @@ IF GVL_Motion_Step.Status THEN
 
     // run2 Step 0: 큐에서 다음 부품 좌표 pop → Data_Buffer 적재 → 모션 시작 (FIFO 소비)
     IF GVL_Motion_Step.No = 0 AND NOT GVL_Vision.Data_Copy_Comp AND VisionQueue.Count > 0 THEN
-        Vis_Head := VisionQueue.Head;        // 가장 오래된 항목
+        Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
         VisionQueue.Pop();
         GVL_Vision.Data_Buffer_X := Vis_Head.X;
         GVL_Vision.Data_Buffer_Y := Vis_Head.Y;
