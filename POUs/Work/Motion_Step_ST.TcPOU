@@ -25,6 +25,7 @@ GVL_Motion_Step.Press_Start := FALSE;
 GVL_Motion_Step.Z_Press_Start := FALSE;
 GVL_Motion_Step.Axis04_Wait_Pos_Moving := FALSE;
 GVL_Motion_Step.Axis02_Stop := FALSE;
+GVL_Motion_Step.Force_Gear_Out := FALSE;
 GVL_Motion_Step.All_Axis_Wait_Pos_Moving := FALSE;
 GVL_Motion_Step.Work_Comp_Target_Pos_Moving := FALSE;
 GVL_Motion_Step.All_Initial := FALSE;
@@ -105,7 +106,15 @@ IF GVL_System.Auto_Mode THEN
             GVL_Motion_Step.No := 20;
         ELSIF GVL_Vision.Target_X_Real_Position_Data < GVL_Axis02.Work_End_Position_Data
               AND NOT GVL_Motion_Step.Z_Press_Start THEN
-            GVL_Motion_Step.No := 30;   // Z 미진입 상태로 압입범위 지나침(R/Y 지연) → 실패 복귀
+            GVL_Motion_Step.No := 15;   // Z 미진입 상태로 압입범위 지나침(R/Y 지연) → gear-out 후 복귀
+        END_IF
+    END_IF
+
+    //Step 15: 실패 abort — X gear-out 강제 후 복귀 (기어 결합 해제 보장)
+    IF GVL_Motion_Step.No = 15 THEN
+        GVL_Motion_Step.Force_Gear_Out := TRUE;       // MC_GearOut.Execute 강제 트리거
+        IF GVL_Axis02.Gear_Out_Done THEN              // gear-out 완료 확인 후에만 복귀
+            GVL_Motion_Step.No := 30;
         END_IF
     END_IF
 

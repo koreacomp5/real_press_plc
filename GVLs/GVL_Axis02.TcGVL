@@ -87,6 +87,7 @@ VAR_GLOBAL
 
 	Power_ON_Delay: BOOL;
 	Test_Power_ON: BOOL;
+	Gear_Out_Done: BOOL;   // MC_GearOut(Axis02_Work_End_Comp).Done 매핑 (실패 abort gear-out 완료 확인)
 	
 END_VAR
 VAR_GLOBAL PERSISTENT

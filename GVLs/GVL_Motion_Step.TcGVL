@@ -16,6 +16,7 @@ VAR_GLOBAL
 	All_Initial: BOOL;
 	Axis02_Stop: BOOL;
 	Z_Press_Start: BOOL;
+	Force_Gear_Out: BOOL;   // 실패 abort 시 X축 gear-out 강제 (→ Axis02_Command MC_GearOut.Execute OR 입력)
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>
