@@ -13,18 +13,15 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// run1 Status 조건 (모션 시퀀스 게이트)
-GVL_Motion_Step.Status :=
-    (GVL_System.Auto_Mode OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
-    AND GVL_System.Safety_ALL_OK;
+      <ST><![CDATA[// run1 Status 조건 (모션 시퀀스 게이트 — 오토모드만 확인. 안전 정지는 HW(EMO)+축계층 담당)
+GVL_Motion_Step.Status := GVL_System.Auto_Mode;
 
-// 비전 캡처 게이트 (오토 전용: Auto AND Safety, Run 은 캡처 조건에서 확인)
-Vision_Copy_Status := GVL_System.Auto_Mode AND GVL_System.Safety_ALL_OK;
+
 
 // 엣지 검출 (매 스캔)
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 
-// ===== 런 6: Target X 위치 계산 (소비된 부품의 캠트리거 위치 기준 이동보정) =====
+// ===== Target X 위치 계산 (소비된 부품의 캠트리거 위치 기준 이동보정) =====
 // Cam_Trig_Pos_Buf 는 pop 시점에 큐에서 가져온 그 부품의 캠트리거 위치(부품별 보정).
 IF GVL_Vision.Data_Copy_Comp THEN
     GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - Cam_Trig_Pos_Buf);
@@ -45,7 +42,7 @@ GVL_Motion_Step.All_Initial := FALSE;
 // ===== 비전 결과 캡처 (덮어쓰기 방지) =====
 // 모션 가능여부와 무관하게, 가깝게 들어온 Vision_OK 결과를 매 엣지마다 큐에 전부 적재.
 // 좌표 세트(X/Y/R) + 해당 캠트리거 위치를 한 항목으로 보존 → 단일 버퍼 덮어쓰기 제거.
-IF Vision_Copy_Status AND Vision_OK_Trig.Q THEN
+IF GVL_System.Auto_Mode AND Vision_OK_Trig.Q THEN
     Vis_Item.X                 := GVL_Vision.Data_Read_X;
     Vis_Item.Y                 := GVL_Vision.Data_Read_Y;
     Vis_Item.Rot               := GVL_Vision.Data_Read_R;
@@ -68,8 +65,7 @@ IF NOT GVL_System.Auto_Mode OR GVL_System.All_Initial THEN
 END_IF
 
 // ===== 모션 시퀀스 =====
-IF GVL_Motion_Step.Status THEN
-
+IF GVL_System.Auto_Mode THEN
     // run2 Step 0: 큐에서 다음 부품 좌표 pop → Data_Buffer 적재 → 모션 시작 (FIFO 소비)
     IF GVL_Motion_Step.No = 0 AND NOT GVL_Vision.Data_Copy_Comp AND VisionQueue.Count > 0 THEN
         Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
@@ -179,8 +175,8 @@ END_IF
     </Implementation>
     <LineIds Name="Motion_Step_ST">
       <LineId Id="348" Count="0" />
-      <LineId Id="4" Count="164" />
-      <LineId Id="2" Count="0" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="7" Count="158" />
     </LineIds>
   </POU>
 </TcPlcObject>
