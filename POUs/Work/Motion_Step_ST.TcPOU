@@ -13,11 +13,7 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// run1 Status 조건 (모션 시퀀스 게이트 — 오토모드만 확인. 안전 정지는 HW(EMO)+축계층 담당)
-GVL_Motion_Step.Status := GVL_System.Auto_Mode;
-
-
-
+      <ST><![CDATA[
 // 엣지 검출 (매 스캔)
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 
