@@ -198,9 +198,6 @@
     <Compile Include="POUs\Vision\Move_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Vision\Vision_Calibration_ST.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Vision\Vision_ST.TcPOU">
       <SubType>Code</SubType>
     </Compile>
