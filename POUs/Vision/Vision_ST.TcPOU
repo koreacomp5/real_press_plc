@@ -15,7 +15,7 @@ VAR
     Step                     : UINT;    // 데이터 카피 시퀀스 스텝
 
     bCamDistReached          : BOOL;               // 이번 스캔 head 가 촬영거리 도달
-    CamQueue                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
+    Fiber_Trig_Pos_Q                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
     Last_Real_Position       : LREAL;              // 직전 스캔 엔코더 위치 (위치 불연속 감지용)
     RESET_JUMP_MIN           : LREAL := 100;       // 역방향 점프 임계(>1스캔 최대 이송) — 엔코더 스케일 맞춰 튜닝
 END_VAR
@@ -35,7 +35,7 @@ END_IF
 // ===== 런 10: Fiber_Sensor_Sensing — 후단(하강엣지)에서 기준점을 큐에 push =====
 IF GVL_System.Auto_Mode AND Fiber_Sensor_Trig.Q AND Case_Armed THEN
     // push 성공 시에만 무장 해제. 큐 만재(거부)면 Case_Armed 유지 → 무음 유실 방지
-    IF CamQueue.Push(GVL_Encoder.Real_Position) THEN
+    IF Fiber_Trig_Pos_Q.Push(GVL_Encoder.Real_Position) THEN
         Case_Armed := FALSE;
     END_IF
 END_IF
@@ -43,11 +43,11 @@ END_IF
 // ===== 런 14: Cam_Trigger — head 기준점 + Cam_Trigger_Length 도달 시 1회 발동 + pop =====
 bCamDistReached := FALSE;
 IF GVL_System.Auto_Mode 
-    AND CamQueue.Count > 0
-    AND (CamQueue.HeadValue + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position) THEN
+    AND Fiber_Trig_Pos_Q.Count > 0
+    AND (Fiber_Trig_Pos_Q.HeadValue + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position) THEN
     bCamDistReached := TRUE;
     GVL_Vision.Cam_Trig_Position := GVL_Encoder.Real_Position;  // Target X 보정 기준(트리거 순간 엔코더)
-    CamQueue.Pop();
+    Fiber_Trig_Pos_Q.Pop();
 END_IF
 
 // 오토모드 캠트리거만 구동 (마스터링은 Mastering.TcPOU 에서 별도 구동, 수동캠트리거 미사용)
@@ -65,7 +65,7 @@ END_IF
 IF NOT GVL_System.Auto_Mode
    OR GVL_Encoder.Conveyor_CCW
    OR ((Last_Real_Position - GVL_Encoder.Real_Position) > RESET_JUMP_MIN) THEN
-    CamQueue.Clear();
+    Fiber_Trig_Pos_Q.Clear();
     Case_Armed := FALSE;
 END_IF
 Last_Real_Position := GVL_Encoder.Real_Position;
@@ -134,7 +134,7 @@ IF All_Initial_Trig.Q THEN
     GVL_Vision.Press_Speed := 0;
     GVL_Vision.Travel_Distance := 0;
     GVL_Vision.Moving_Time := 0;
-    CamQueue.Clear();           // 시스템 초기화 시 캠트리거 큐 비움
+    Fiber_Trig_Pos_Q.Clear();           // 시스템 초기화 시 캠트리거 큐 비움
     Case_Armed := FALSE;
 END_IF
 
