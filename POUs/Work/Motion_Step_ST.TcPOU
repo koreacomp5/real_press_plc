@@ -48,9 +48,6 @@ IF GVL_Motion_Step.Status THEN
         IF GVL_Vision.Target_X_Real_Position_Data <= GVL_Axis02.Wait_Position_Data THEN
             GVL_Motion_Step.No := 10;
         END_IF
-        IF GVL_Vision.Vision_NG THEN
-            GVL_Motion_Step.No := 10;
-        END_IF
     END_IF
 
     //run 7  Step 10: Press Start valid

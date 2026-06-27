@@ -10,7 +10,7 @@ VAR
 	Shot_Position : LREAL;          // 정방향 카메라 촬영 위치
 	Back_Distance : LREAL;          // Back 단계 이동량 (대기위치 기준 CCW 복귀량)
 	Back_Start_Position : LREAL;    // Back 단계 시작(대기) 시점의 컨베이어 위치
-	Vision_Start_Sensor_Trig  : R_TRIG;
+	Fiber_Sensor_Trig  : R_TRIG;
 	Back_Pos_Trig : R_TRIG;
 
 	Mastering_Step : INT;
@@ -23,12 +23,18 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[
-Vision_Start_Sensor_Trig(CLK := GVL_System.Vision_Start_Sensor);
+Fiber_Sensor_Trig(CLK := GVL_System.Fiber_Sensor);
 Back_Pos_Trig(CLK := GVL_Mastering.Back_Trig);
 
 fbCamPulse(IN := bCamTrigTP, PT := T#200MS);
 GVL_Mastering.Cam_Trig := fbCamPulse.Q;
 bCamTrigTP := FALSE;
+
+// 마스터링(수동) 모드에서 카메라 물리 트리거(GVL_Vision.Cam_Trigger) 구동.
+// 오토모드는 Vision_ST 가 구동 — 모드가 배타적이라 두 POU 가 같은 출력을 안 다툼.
+IF GVL_System.Manual_Mode THEN
+    GVL_Vision.Cam_Trigger := GVL_Mastering.Cam_Trig;
+END_IF
 
 
 (* ──────────────────────────────────────────────────────────────
@@ -99,7 +105,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
 
     (* ── STEP 5 : 비전 시작 센서 감지 → 케이스 길이 계산 ── *)
-    IF Vision_Start_Sensor_Trig.Q AND Mastering_Step = 5 THEN
+    IF Fiber_Sensor_Trig.Q AND Mastering_Step = 5 THEN
 
         (* 센서 감지 시점의 엔코더 위치 저장 → 케이스 길이 계산 *)
         Sensor_Position              := GVL_Encoder.Real_Position;
