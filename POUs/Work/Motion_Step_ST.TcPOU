@@ -13,15 +13,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
-// 엣지 검출 (매 스캔)
+      <ST><![CDATA[// 엣지 검출 (매 스캔)
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
-
-// ===== Target X 위치 계산 (소비된 부품의 캠트리거 위치 기준 이동보정) =====
-// Cam_Trig_Pos_Buf 는 pop 시점에 큐에서 가져온 그 부품의 캠트리거 위치(부품별 보정).
-IF GVL_Vision.Data_Copy_Comp THEN
-    GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - Cam_Trig_Pos_Buf);
-END_IF
 
 // 코일 초기화
 GVL_Motion_Step.Motion_Start := FALSE;
@@ -37,7 +30,6 @@ GVL_Motion_Step.All_Initial := FALSE;
 
 // ===== 비전 결과 캡처 (덮어쓰기 방지) =====
 // 모션 가능여부와 무관하게, 가깝게 들어온 Vision_OK 결과를 매 엣지마다 큐에 전부 적재.
-// 좌표 세트(X/Y/R) + 해당 캠트리거 위치를 한 항목으로 보존 → 단일 버퍼 덮어쓰기 제거.
 IF GVL_System.Auto_Mode AND Vision_OK_Trig.Q THEN
     Vis_Item.X                 := GVL_Vision.Data_Read_X;
     Vis_Item.Y                 := GVL_Vision.Data_Read_Y;
@@ -62,28 +54,32 @@ END_IF
 
 // ===== 모션 시퀀스 =====
 IF GVL_System.Auto_Mode THEN
-    // run2 Step 0: 큐에서 다음 부품 좌표 pop → Data_Buffer 적재 → 모션 시작 (FIFO 소비)
-    IF GVL_Motion_Step.No = 0 AND NOT GVL_Vision.Data_Copy_Comp AND VisionQueue.Count > 0 THEN
+	
+	IF GVL_Motion_Step.No <> 0 THEN
+		GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - Cam_Trig_Pos_Buf);
+	END_IF
+	
+    // Step 0  큐에서 다음 부품 좌표 pop → Data_Buffer 적재 → 모션 시작 (FIFO 소비)
+    IF GVL_Motion_Step.No = 0 AND VisionQueue.Count > 0 THEN
         Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
         VisionQueue.Pop();
         GVL_Vision.Data_Buffer_X := Vis_Head.X;
         GVL_Vision.Data_Buffer_Y := Vis_Head.Y;
         GVL_Vision.Data_Buffer_R := Vis_Head.Rot;
         Cam_Trig_Pos_Buf         := Vis_Head.Cam_Trig_Position;
-        GVL_Vision.Data_Copy_Comp := TRUE;
         GVL_Motion_Step.Motion_Start := TRUE; // not use
         GVL_Motion_Step.No := 1;
     END_IF
 
-    //run 3 Step 1: Target Pos Moving
-    IF GVL_Motion_Step.No = 1 AND GVL_Vision.Data_Copy_Comp THEN
+    //Step 1: Target Pos Moving
+    IF GVL_Motion_Step.No = 1 THEN
         GVL_Motion_Step.Target_Pos_Moving := TRUE; // reference axis03_auto, xis01_auto
         IF GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
             GVL_Motion_Step.No := 5;
         END_IF
     END_IF
 
-    //run 5 Step 5: Axis02 Work Wait
+    //Step 5: Axis02 Work Wait
     IF GVL_Motion_Step.No = 5 THEN
         GVL_Motion_Step.Axis02_Work_Wait := TRUE;
         IF GVL_Vision.Target_X_Real_Position_Data <= GVL_Axis02.Wait_Position_Data THEN
@@ -91,7 +87,7 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    //run 7  Step 10: Press Start valid
+    //Step 10: Press Start valid
     IF GVL_Motion_Step.No = 10 THEN
         GVL_Motion_Step.Press_Start := TRUE;
         IF GVL_Vision.Target_X_Real_Position_Data <= (GVL_Axis02.Wait_Position_Data - GVL_Axis02.Sync_Data) THEN
@@ -102,7 +98,7 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    //run 9 Step 20: Axis04 Wait Pos Moving
+    //Step 20: Axis04 Wait Pos Moving
     IF GVL_Motion_Step.No = 20 THEN
         IF GVL_Axis02.Real_Position <-1 THEN
             GVL_Motion_Step.Press_Start := FALSE;
@@ -117,7 +113,7 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    //run 10 Step 25: Axis02 Stop
+    //Step 25: Axis02 Stop
     IF GVL_Motion_Step.No = 25 THEN
         GVL_Motion_Step.Axis02_Stop := TRUE;
         IF GVL_Axis02.Work_End_Position THEN
@@ -130,7 +126,7 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    //run 12 Step 30: All Axis Wait Pos Moving
+    //Step 30: All Axis Wait Pos Moving
     IF GVL_Motion_Step.No = 30 THEN
         GVL_Motion_Step.All_Axis_Wait_Pos_Moving := TRUE;
         IF GVL_System.ALL_Wait_Position THEN
@@ -138,7 +134,7 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    //run13 Step 35: Work Comp Target Pos Moving
+    //Step 35: Work Comp Target Pos Moving
     IF GVL_Motion_Step.No = 35 THEN
         GVL_Motion_Step.Work_Comp_Target_Pos_Moving := TRUE;
         IF GVL_Axis02.Wait_Position AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
@@ -146,20 +142,19 @@ IF GVL_System.Auto_Mode THEN
         END_IF
     END_IF
 
-    // run 14 Step 40: 사이클말 — All Initial + 버퍼/카피완료 초기화 (비전 큐는 비우지 않음: 대기 부품 보존)
+    //Step 40: 사이클말 — All Initial + 버퍼/카피완료 초기화 (비전 큐는 비우지 않음: 대기 부품 보존)
     IF GVL_Motion_Step.No = 40 THEN
         GVL_Motion_Step.All_Initial := TRUE;
         GVL_Vision.Data_Buffer_X := 0;
         GVL_Vision.Data_Buffer_Y := 0;
         GVL_Vision.Data_Buffer_R := 0;
-        GVL_Vision.Data_Copy_Comp := FALSE;
         GVL_Vision.Target_X_Real_Position_Data := 0;
         GVL_Motion_Step.No := 0;
     END_IF
 
 END_IF
 
-// ===== 런 3: Vision 데이터 초기화 (캡처 직후 다음 결과 수신 준비) =====
+// Vision 데이터 초기화 (캡처 직후 다음 결과 수신 준비) =====
 IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_X := 0;
     GVL_Vision.Data_Read_Y := 0;
@@ -170,9 +165,15 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="Motion_Step_ST">
-      <LineId Id="348" Count="0" />
       <LineId Id="4" Count="0" />
-      <LineId Id="7" Count="158" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="14" Count="14" />
+      <LineId Id="30" Count="23" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="355" Count="1" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="54" Count="103" />
     </LineIds>
   </POU>
 </TcPlcObject>

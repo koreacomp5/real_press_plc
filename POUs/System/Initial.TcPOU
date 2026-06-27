@@ -21,7 +21,6 @@ END_VAR
 	GVL_Main_Step.NO 						:=	0;
 	GVL_Motion_Step.No						:=	0;
 	GVL_Vision.Data_Check					:=	0;
-	GVL_Vision.Data_Copy_Comp				:= FALSE;
 	GVL_Vision.Vision_OK					:= FALSE;
 	GVL_Axis04.M_Cleaning_Move := FALSE;
 	GVL_Vision.Cam_Trigger := FALSE;
