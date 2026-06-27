@@ -1131,7 +1131,7 @@ Machine Stop"</v>
                         <n n="InputFlags" />
                         <l2 n="InputItems">
                           <o t="BoxTreeBox">
-                            <v n="BoxType">"OR"</v>
+                            <v n="BoxType">"AND"</v>
                             <o n="Instance" t="Operand">
                               <n n="Operand" />
                               <v n="Type">""</v>
@@ -1146,7 +1146,7 @@ Machine Stop"</v>
                               <v n="LValue">false</v>
                               <v n="Boolean">false</v>
                               <v n="IsInstance">true</v>
-                              <v n="Id">2077L</v>
+                              <v n="Id">2081L</v>
                             </o>
                             <o n="OutputItems" t="OutputItemList">
                               <l2 n="OutputItems" />
@@ -1157,172 +1157,44 @@ Machine Stop"</v>
                               <v n="Extensible">false</v>
                             </o>
                             <n n="InputFlags" />
-                            <l2 n="InputItems" cet="BoxTreeBox">
+                            <l2 n="InputItems" cet="BoxTreeOperand">
                               <o>
-                                <v n="BoxType">"AND"</v>
-                                <o n="Instance" t="Operand">
-                                  <n n="Operand" />
-                                  <v n="Type">""</v>
+                                <o n="Operand" t="Operand">
+                                  <v n="Operand">"GVL_Alarm.E_STOP_Alarm08"</v>
+                                  <v n="Type">"BOOL"</v>
                                   <v n="Comment">""</v>
                                   <v n="SymbolComment">""</v>
                                   <v n="Address">""</v>
                                   <o n="Flags" t="Flags">
                                     <v n="Flags">0</v>
-                                    <v n="Fixed">false</v>
+                                    <v n="Fixed">true</v>
                                     <v n="Extensible">false</v>
                                   </o>
                                   <v n="LValue">false</v>
-                                  <v n="Boolean">false</v>
-                                  <v n="IsInstance">true</v>
-                                  <v n="Id">2093L</v>
+                                  <v n="Boolean">true</v>
+                                  <v n="IsInstance">false</v>
+                                  <v n="Id">2086L</v>
                                 </o>
-                                <o n="OutputItems" t="OutputItemList">
-                                  <l2 n="OutputItems" />
-                                </o>
-                                <o n="Flags" t="Flags">
-                                  <v n="Flags">0</v>
-                                  <v n="Fixed">false</v>
-                                  <v n="Extensible">false</v>
-                                </o>
-                                <n n="InputFlags" />
-                                <l2 n="InputItems" cet="BoxTreeOperand">
-                                  <o>
-                                    <o n="Operand" t="Operand">
-                                      <v n="Operand">"GVL_System.Auto_Mode"</v>
-                                      <v n="Type">"BOOL"</v>
-                                      <v n="Comment">""</v>
-                                      <v n="SymbolComment">""</v>
-                                      <v n="Address">""</v>
-                                      <o n="Flags" t="Flags">
-                                        <v n="Flags">0</v>
-                                        <v n="Fixed">true</v>
-                                        <v n="Extensible">false</v>
-                                      </o>
-                                      <v n="LValue">false</v>
-                                      <v n="Boolean">true</v>
-                                      <v n="IsInstance">false</v>
-                                      <v n="Id">2098L</v>
-                                    </o>
-                                    <v n="Id">2097L</v>
-                                  </o>
-                                  <o>
-                                    <o n="Operand" t="Operand">
-                                      <v n="Operand">"GVL_vision.Run"</v>
-                                      <v n="Type">"BOOL"</v>
-                                      <v n="Comment">""</v>
-                                      <v n="SymbolComment">""</v>
-                                      <v n="Address">""</v>
-                                      <o n="Flags" t="Flags">
-                                        <v n="Flags">1</v>
-                                        <v n="Fixed">true</v>
-                                        <v n="Extensible">false</v>
-                                      </o>
-                                      <v n="LValue">false</v>
-                                      <v n="Boolean">true</v>
-                                      <v n="IsInstance">false</v>
-                                      <v n="Id">2096L</v>
-                                    </o>
-                                    <v n="Id">2095L</v>
-                                  </o>
-                                </l2>
-                                <o n="InputParam" t="ParamList">
-                                  <l2 n="Names" />
-                                  <l2 n="Types" />
-                                </o>
-                                <o n="OutputParam" t="ParamList">
-                                  <l2 n="Names" />
-                                  <l2 n="Types" />
-                                </o>
-                                <v n="CallType" t="Operator">And</v>
-                                <n n="EN" />
-                                <n n="ENO" />
-                                <n n="STSnippet" />
-                                <v n="ContainsExtensibleInputs">false</v>
-                                <v n="ProvidesSTSnippet">false</v>
-                                <v n="Id">2094L</v>
+                                <v n="Id">2085L</v>
                               </o>
                               <o>
-                                <v n="BoxType">"AND"</v>
-                                <o n="Instance" t="Operand">
-                                  <n n="Operand" />
-                                  <v n="Type">""</v>
+                                <o n="Operand" t="Operand">
+                                  <v n="Operand">"GVL_System.Alarm_Reset"</v>
+                                  <v n="Type">"BOOL"</v>
                                   <v n="Comment">""</v>
                                   <v n="SymbolComment">""</v>
                                   <v n="Address">""</v>
                                   <o n="Flags" t="Flags">
-                                    <v n="Flags">0</v>
-                                    <v n="Fixed">false</v>
+                                    <v n="Flags">1</v>
+                                    <v n="Fixed">true</v>
                                     <v n="Extensible">false</v>
                                   </o>
                                   <v n="LValue">false</v>
-                                  <v n="Boolean">false</v>
-                                  <v n="IsInstance">true</v>
-                                  <v n="Id">2081L</v>
+                                  <v n="Boolean">true</v>
+                                  <v n="IsInstance">false</v>
+                                  <v n="Id">2084L</v>
                                 </o>
-                                <o n="OutputItems" t="OutputItemList">
-                                  <l2 n="OutputItems" />
-                                </o>
-                                <o n="Flags" t="Flags">
-                                  <v n="Flags">0</v>
-                                  <v n="Fixed">false</v>
-                                  <v n="Extensible">false</v>
-                                </o>
-                                <n n="InputFlags" />
-                                <l2 n="InputItems" cet="BoxTreeOperand">
-                                  <o>
-                                    <o n="Operand" t="Operand">
-                                      <v n="Operand">"GVL_Alarm.E_STOP_Alarm08"</v>
-                                      <v n="Type">"BOOL"</v>
-                                      <v n="Comment">""</v>
-                                      <v n="SymbolComment">""</v>
-                                      <v n="Address">""</v>
-                                      <o n="Flags" t="Flags">
-                                        <v n="Flags">0</v>
-                                        <v n="Fixed">true</v>
-                                        <v n="Extensible">false</v>
-                                      </o>
-                                      <v n="LValue">false</v>
-                                      <v n="Boolean">true</v>
-                                      <v n="IsInstance">false</v>
-                                      <v n="Id">2086L</v>
-                                    </o>
-                                    <v n="Id">2085L</v>
-                                  </o>
-                                  <o>
-                                    <o n="Operand" t="Operand">
-                                      <v n="Operand">"GVL_System.Alarm_Reset"</v>
-                                      <v n="Type">"BOOL"</v>
-                                      <v n="Comment">""</v>
-                                      <v n="SymbolComment">""</v>
-                                      <v n="Address">""</v>
-                                      <o n="Flags" t="Flags">
-                                        <v n="Flags">1</v>
-                                        <v n="Fixed">true</v>
-                                        <v n="Extensible">false</v>
-                                      </o>
-                                      <v n="LValue">false</v>
-                                      <v n="Boolean">true</v>
-                                      <v n="IsInstance">false</v>
-                                      <v n="Id">2084L</v>
-                                    </o>
-                                    <v n="Id">2083L</v>
-                                  </o>
-                                </l2>
-                                <o n="InputParam" t="ParamList">
-                                  <l2 n="Names" />
-                                  <l2 n="Types" />
-                                </o>
-                                <o n="OutputParam" t="ParamList">
-                                  <l2 n="Names" />
-                                  <l2 n="Types" />
-                                </o>
-                                <v n="CallType" t="Operator">And</v>
-                                <n n="EN" />
-                                <n n="ENO" />
-                                <n n="STSnippet" />
-                                <v n="ContainsExtensibleInputs">false</v>
-                                <v n="ProvidesSTSnippet">false</v>
-                                <v n="Id">2082L</v>
+                                <v n="Id">2083L</v>
                               </o>
                             </l2>
                             <o n="InputParam" t="ParamList">
@@ -1333,13 +1205,13 @@ Machine Stop"</v>
                               <l2 n="Names" />
                               <l2 n="Types" />
                             </o>
-                            <v n="CallType" t="Operator">Or</v>
+                            <v n="CallType" t="Operator">And</v>
                             <n n="EN" />
                             <n n="ENO" />
                             <n n="STSnippet" />
                             <v n="ContainsExtensibleInputs">false</v>
                             <v n="ProvidesSTSnippet">false</v>
-                            <v n="Id">2078L</v>
+                            <v n="Id">2082L</v>
                           </o>
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
