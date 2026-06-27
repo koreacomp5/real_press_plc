@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Motion_Step_ST" Id="{ac3913c8-2e13-4a7b-9725-7ff41cb7600e}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Motion_Step_ST
@@ -11,6 +11,15 @@ VAR
     Cand_Target_X      : LREAL;              // pop 후보 부품의 현재 Target X (도달성 판단)
     Data_Initial       : BOOL;               // 캡처 직후 Data_Read/Vision_OK 초기화 예약
     Vision_Copy_Status : BOOL;               // 비전 캡처 게이트(오토 전용: Auto AND Safety)
+    // ── 사이클 스텝 기록(디버그) — No 전이마다 링버퍼에 기록 ──
+    Log_No      : ARRAY[0..99] OF INT;        // No 전이값
+    Log_Time    : ARRAY[0..99] OF DINT;       // 전이 시점 스캔카운트(≈ms)
+    Log_TgtX    : ARRAY[0..99] OF LREAL;      // 전이 시점 Target_X
+    Log_PosX    : ARRAY[0..99] OF LREAL;      // 전이 시점 Axis02 실제위치
+    Log_GearOut : ARRAY[0..99] OF BOOL;       // 전이 시점 Gear_Out_Done
+    Log_Idx     : INT;                        // 다음 기록 위치(가장 최근 = Log_Idx-1)
+    No_Last     : INT := -1;                  // 직전 No (변화 감지)
+    Scan_Cnt    : DINT;                       // 스캔 카운터
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -54,110 +63,96 @@ IF NOT GVL_System.Auto_Mode OR GVL_System.All_Initial THEN
     GVL_Vision.Vision_Q_Overflow := FALSE;
 END_IF
 
-// ===== 모션 시퀀스 =====
+// ===== 모션 시퀀스 (CASE: 스캔당 1스텝만 — 같은 스캔 cascade/stale 판정 방지) =====
 IF GVL_System.Auto_Mode THEN
-	
-	IF GVL_Motion_Step.No <> 0 THEN
-		GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - Cam_Trig_Pos_Buf);
-	END_IF
-	
-    // Step 0: 큐에서 다음 부품 pop. Wait 위치를 지나친(도달불가) 부품은 폐기(실패), 도달 가능한 것만 적재.
-    IF GVL_Motion_Step.No = 0 AND VisionQueue.Count > 0 THEN
-        Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
-        Cand_Target_X := Vis_Head.X - (GVL_Encoder.Real_Position - Vis_Head.Cam_Trig_Position);
-        IF Cand_Target_X >= GVL_Axis02.Wait_Position_Data THEN
-            // 아직 Wait 전 → 도달 가능 → 적재 + 시작
-            VisionQueue.Pop();
-            GVL_Vision.Data_Buffer_X := Vis_Head.X;
-            GVL_Vision.Data_Buffer_Y := Vis_Head.Y;
-            GVL_Vision.Data_Buffer_R := Vis_Head.Rot;
-            Cam_Trig_Pos_Buf         := Vis_Head.Cam_Trig_Position;
-            GVL_Motion_Step.Motion_Start := TRUE; // not use
-            GVL_Motion_Step.No := 1;
-        ELSE
-            VisionQueue.Pop();   // Wait 통과(지나침) → 실패 폐기, No=0 유지 → 다음 부품 시도
-        END_IF
+
+    // Target X 위치 계산 (스텝이 읽기 전, No<>0 일 때 매 스캔 갱신)
+    IF GVL_Motion_Step.No <> 0 THEN
+        GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - Cam_Trig_Pos_Buf);
     END_IF
 
-    //Step 1: R/Y 타겟 이동 시작 (블로킹 안 함 — 대기/sync 구간 병렬 이동, Z 프레스 직전 도달 확인)
-    IF GVL_Motion_Step.No = 1 THEN
-        GVL_Motion_Step.Target_Pos_Moving := TRUE; // reference axis03_auto, axis01_auto
-        GVL_Motion_Step.No := 5;
-    END_IF
+    CASE GVL_Motion_Step.No OF
 
-    //Step 5: Axis02 Work Wait (R/Y 병렬 이동 지속)
-    IF GVL_Motion_Step.No = 5 THEN
-        GVL_Motion_Step.Target_Pos_Moving := TRUE;   // R/Y 계속 타겟으로
-        GVL_Motion_Step.Axis02_Work_Wait := TRUE;
-        IF GVL_Vision.Target_X_Real_Position_Data <= GVL_Axis02.Wait_Position_Data THEN
-            GVL_Motion_Step.No := 10;
-        END_IF
-    END_IF
+        0:  // 큐에서 다음 부품 pop. Wait 위치를 지나친(도달불가) 부품은 폐기(실패), 도달 가능한 것만 적재.
+            IF VisionQueue.Count > 0 THEN
+                Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
+                Cand_Target_X := Vis_Head.X - (GVL_Encoder.Real_Position - Vis_Head.Cam_Trig_Position);
+                IF Cand_Target_X >= GVL_Axis02.Wait_Position_Data THEN
+                    // 아직 Wait 전 → 도달 가능 → 적재 + 시작
+                    VisionQueue.Pop();
+                    GVL_Vision.Data_Buffer_X := Vis_Head.X;
+                    GVL_Vision.Data_Buffer_Y := Vis_Head.Y;
+                    GVL_Vision.Data_Buffer_R := Vis_Head.Rot;
+                    Cam_Trig_Pos_Buf         := Vis_Head.Cam_Trig_Position;
+                    GVL_Motion_Step.Motion_Start := TRUE; // not use
+                    GVL_Motion_Step.No := 1;
+                ELSE
+                    VisionQueue.Pop();   // Wait 통과(지나침) → 실패 폐기, 다음 부품 시도
+                END_IF
+            END_IF
 
-    //Step 10: Press Start (sync). R/Y 타겟 도달 후에만 Z 프레스. R/Y 지연으로 압입범위 지나치면 실패 복귀.
-    IF GVL_Motion_Step.No = 10 THEN
-        GVL_Motion_Step.Target_Pos_Moving := TRUE;   // R/Y 타겟 유지(sync 구간 병렬 이동)
-        GVL_Motion_Step.Press_Start := TRUE;
-        IF GVL_Vision.Target_X_Real_Position_Data <= (GVL_Axis02.Wait_Position_Data - GVL_Axis02.Sync_Data)
-           AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
-            GVL_Motion_Step.Z_Press_Start := TRUE;
-        END_IF
-        IF GVL_Axis04.Work_End_Position THEN
-            GVL_Motion_Step.No := 20;
-        ELSIF GVL_Vision.Target_X_Real_Position_Data < GVL_Axis02.Work_End_Position_Data
-              AND NOT GVL_Motion_Step.Z_Press_Start THEN
-            GVL_Motion_Step.No := 15;   // Z 미진입 상태로 압입범위 지나침(R/Y 지연) → gear-out 후 복귀
-        END_IF
-    END_IF
+        1:  // R/Y 타겟 이동 시작 (블로킹 안 함 — 대기/sync 구간 병렬 이동, Z 프레스 직전 도달 확인)
+            GVL_Motion_Step.Target_Pos_Moving := TRUE; // reference axis03_auto, axis01_auto
+            GVL_Motion_Step.No := 5;
 
-    //Step 15: 실패 abort — X gear-out 강제 후 복귀 (기어 결합 해제 보장)
-    IF GVL_Motion_Step.No = 15 THEN
-        GVL_Motion_Step.Force_Gear_Out := TRUE;       // MC_GearOut.Execute 강제 트리거
-        IF GVL_Axis02.Gear_Out_Done THEN              // gear-out 완료 확인 후에만 복귀
-            GVL_Motion_Step.No := 30;
-        END_IF
-    END_IF
+        5:  // Axis02 Work Wait (R/Y 병렬 이동 지속)
+            GVL_Motion_Step.Target_Pos_Moving := TRUE;   // R/Y 계속 타겟으로
+            GVL_Motion_Step.Axis02_Work_Wait := TRUE;
+            IF GVL_Vision.Target_X_Real_Position_Data <= GVL_Axis02.Wait_Position_Data THEN
+                GVL_Motion_Step.No := 10;
+            END_IF
 
-    //Step 20: Axis04 Wait Pos Moving
-    IF GVL_Motion_Step.No = 20 THEN
-        IF GVL_Axis02.Real_Position <-1 THEN
-            GVL_Motion_Step.Press_Start := FALSE;
-            GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
-            GVL_Motion_Step.No := 25;
-        END_IF
-        IF GVL_Axis02.Real_Position <= (GVL_Axis02.Work_End_Position_Data + 10) THEN
-            GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
-        END_IF
-        IF GVL_Axis02.Real_Position <= GVL_Axis02.Work_End_Position_Data THEN
-            GVL_Motion_Step.No := 25;
-        END_IF
-    END_IF
+        10: // Press Start (sync). R/Y 타겟 도달 후에만 Z 프레스. R/Y 지연으로 압입범위 지나치면 실패 복귀.
+            GVL_Motion_Step.Target_Pos_Moving := TRUE;   // R/Y 타겟 유지(sync 구간 병렬 이동)
+            GVL_Motion_Step.Press_Start := TRUE;
+            IF GVL_Vision.Target_X_Real_Position_Data <= (GVL_Axis02.Wait_Position_Data - GVL_Axis02.Sync_Data)
+               AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
+                GVL_Motion_Step.Z_Press_Start := TRUE;
+            END_IF
+            IF GVL_Axis04.Work_End_Position THEN
+                GVL_Motion_Step.No := 20;
+            ELSIF GVL_Vision.Target_X_Real_Position_Data < GVL_Axis02.Work_End_Position_Data
+                  AND NOT GVL_Motion_Step.Z_Press_Start THEN
+                GVL_Motion_Step.No := 25;   // Z 미진입 압입범위 지나침 → No=25 MC_Stop으로 기어 어보트+정지(검증된 경로)
+            END_IF
 
-    //Step 25: Axis02 Stop
-    IF GVL_Motion_Step.No = 25 THEN
-        GVL_Motion_Step.Axis02_Stop := TRUE;
-        IF GVL_Axis02.Work_End_Position THEN
-            GVL_Motion_Step.No := 30;
-        END_IF
-    END_IF
+        20: // Axis04 Wait Pos Moving
+            IF GVL_Axis02.Real_Position <-1 THEN
+                GVL_Motion_Step.Press_Start := FALSE;
+                GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
+                GVL_Motion_Step.No := 25;
+            END_IF
+            IF GVL_Axis02.Real_Position <= (GVL_Axis02.Work_End_Position_Data + 10) THEN
+                GVL_Motion_Step.Axis04_Wait_Pos_Moving := TRUE;
+            END_IF
+            IF GVL_Axis02.Real_Position <= GVL_Axis02.Work_End_Position_Data THEN
+                GVL_Motion_Step.No := 25;
+            END_IF
 
-    //Step 30: All Axis Wait Pos Moving
-    IF GVL_Motion_Step.No = 30 THEN
-        GVL_Motion_Step.All_Axis_Wait_Pos_Moving := TRUE;
-        IF GVL_System.ALL_Wait_Position THEN
-            GVL_Motion_Step.No := 40;
-        END_IF
-    END_IF
+        25: // Axis02 Stop
+            GVL_Motion_Step.Axis02_Stop := TRUE;
+            IF GVL_Axis02.Work_End_Position THEN
+                GVL_Motion_Step.No := 30;
+            END_IF
 
-    //Step 40: 사이클말 — All Initial + 버퍼/카피완료 초기화 (비전 큐는 비우지 않음: 대기 부품 보존)
-    IF GVL_Motion_Step.No = 40 THEN
-        GVL_Motion_Step.All_Initial := TRUE;
-        GVL_Vision.Data_Buffer_X := 0;
-        GVL_Vision.Data_Buffer_Y := 0;
-        GVL_Vision.Data_Buffer_R := 0;
-        GVL_Vision.Target_X_Real_Position_Data := 0;
-        GVL_Motion_Step.No := 0;
-    END_IF
+        30: // All Axis Wait Pos Moving
+            GVL_Motion_Step.All_Axis_Wait_Pos_Moving := TRUE;
+            IF GVL_System.ALL_Wait_Position THEN
+                GVL_Motion_Step.No := 40;
+            END_IF
+
+        40: // 사이클말 — All Initial + 버퍼/카피완료 초기화 (비전 큐는 비우지 않음: 대기 부품 보존)
+            GVL_Motion_Step.All_Initial := TRUE;
+            GVL_Vision.Data_Buffer_X := 0;
+            GVL_Vision.Data_Buffer_Y := 0;
+            GVL_Vision.Data_Buffer_R := 0;
+            GVL_Vision.Target_X_Real_Position_Data := 0;
+            GVL_Motion_Step.No := 0;
+
+    ELSE
+        GVL_Motion_Step.No := 0;   // 미정의 스텝값 → 안전 복귀(유휴)
+
+    END_CASE
 
 END_IF
 
@@ -169,18 +164,23 @@ IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Vision_OK := FALSE;
     Data_Initial := FALSE;
 END_IF
+
+// ===== 사이클 스텝 기록 (디버그) — No 가 바뀔 때마다 링버퍼에 1줄 기록 =====
+// 크래시 후: Log_Idx 직전 인덱스부터 거꾸로 읽으면 경로 확인 (예: …10,15,30 / …10,20,25,30).
+Scan_Cnt := Scan_Cnt + 1;
+IF GVL_Motion_Step.No <> No_Last THEN
+    Log_No[Log_Idx]      := GVL_Motion_Step.No;
+    Log_Time[Log_Idx]    := Scan_Cnt;
+    Log_TgtX[Log_Idx]    := GVL_Vision.Target_X_Real_Position_Data;
+    Log_PosX[Log_Idx]    := GVL_Axis02.Real_Position;
+    Log_GearOut[Log_Idx] := GVL_Axis02.Gear_Out_Done;
+    Log_Idx := (Log_Idx + 1) MOD 100;
+    No_Last := GVL_Motion_Step.No;
+END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="Motion_Step_ST">
       <LineId Id="4" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="14" Count="14" />
-      <LineId Id="30" Count="23" />
-      <LineId Id="351" Count="0" />
-      <LineId Id="355" Count="1" />
-      <LineId Id="352" Count="0" />
-      <LineId Id="357" Count="0" />
-      <LineId Id="54" Count="103" />
     </LineIds>
   </POU>
 </TcPlcObject>
