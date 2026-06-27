@@ -59,6 +59,7 @@ END_VAR
 VAR_GLOBAL PERSISTENT
 	Cam_Trigger_Length						:	LREAL	;
 	Axis04_Mastering_Position_Data: LREAL;
+	Press_Count : UDINT;   // 실제 압입(Z 압입완료) 누적 횟수(전원 유지) — vision 대시보드 캡처용(ADS 읽기)
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

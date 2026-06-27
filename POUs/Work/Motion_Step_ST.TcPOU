@@ -100,10 +100,11 @@ IF GVL_System.Auto_Mode THEN
                 GVL_Motion_Step.Z_Press_Start := TRUE;
             END_IF
             IF GVL_Axis04.Work_End_Position THEN
+                GVL_Vision.Press_Count := GVL_Vision.Press_Count + 1;   // 실제 압입(Z 압입완료) 1회 누적 — vision 캡처용
                 GVL_Motion_Step.No := 20;
-            ELSIF GVL_Vision.Target_X_Real_Position_Data < GVL_Axis02.Work_End_Position_Data
+            ELSIF GVL_Vision.Target_X_Real_Position_Data < 0
                   AND NOT GVL_Motion_Step.Z_Press_Start THEN
-                GVL_Motion_Step.No := 25;   // Z 미진입 압입범위 지나침 → No=25 MC_Stop으로 기어 어보트+정지(검증된 경로)
+                GVL_Motion_Step.No := 25;   // Z 미진입인데 부품이 0(센서 닿기 전 한계) 지나침 → No=25 MC_Stop 복귀
             END_IF
 
         20: // Axis04 Wait Pos Moving
