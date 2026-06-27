@@ -4,76 +4,75 @@
     <Declaration><![CDATA[PROGRAM Vision_ST
 VAR
     All_Initial_Trig         : R_TRIG;
-    Fiber_Sensor_Trig : F_TRIG;
-    Vision_OK_Trig           : R_TRIG;  // 추가
-    Vision_NG_Trig           : R_TRIG;  // 추가
-    Cam_Trigger_Trig         : R_TRIG;  // 카메라 트리거 상승엣지 (위치 캡처용)
-    Vision_Delay             : BOOL;
-    Vision_OFF_Delay         : TON;
+    Fiber_Sensor_Trig        : F_TRIG;
+    Vision_OK_Trig           : R_TRIG;
     Trig_ON                  : BOOL;
     Data_Initial             : BOOL;
     Status                   : BOOL;
     Step                     : UINT;    // 데이터 카피 시퀀스 스텝
-    Vision_off_100ms_TON     : TON;     // 센서 100ms 유지 감지 딜레이 타이머
+    Fiber_Sensor_Valid_TON   : TON;     // 파이버 센서 100ms 연속 ON = 유효 케이스 확인(디바운스)
+    CamQueue                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
+    bCamDistReached          : BOOL;               // 이번 스캔 head 가 촬영거리 도달
+    Cam_Trig_Pulse           : TP;                 // 캠트리거 0.1s 펄스 정형
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[GVL_Vision.HaertBeat_ON := FALSE;
-GVL_Vision.HaertBeat_OFF := FALSE;
-All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
+      <ST><![CDATA[All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
 Fiber_Sensor_Trig(CLK := GVL_System.Fiber_Sensor);
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
-Vision_NG_Trig(CLK := GVL_Vision.Vision_NG);
-Vision_off_100ms_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
+Fiber_Sensor_Valid_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
 
-// Fiber 센서 100ms 유지 시 무장(SET), 캠트리거 발생 시 해제(RESET) — 리셋 우선 SR 래치
-Trig_ON := (Trig_ON OR Vision_off_100ms_TON.Q) AND NOT GVL_Vision.Cam_Trigger;
-
-// ===== 런 10: Fiber_Sener_Sensing=====
-IF (GVL_System.Add_Case_Mode OR GVL_System.Auto_Mode) AND Fiber_Sensor_Trig.Q AND Trig_ON THEN
-    GVL_Vision.Sensor_Trig_Pos := GVL_Encoder.Real_Position;
-    Vision_Delay := TRUE;
+// 무장(SET): 파이버 센서 100ms 연속 ON = 유효 케이스 (RESET 은 런10 push 시)
+IF Fiber_Sensor_Valid_TON.Q THEN
+    Trig_ON := TRUE;
 END_IF
 
-// ===== 런 14: Cam_Trigger =====
-GVL_Vision.Cam_Trigger := (GVL_System.Auto_Mode AND Vision_Delay AND GVL_Vision.Sensor_Trig_Pos + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position)
-    OR (NOT GVL_System.Auto_Mode AND GVL_System.Manual_Cam_Trigger)
-    OR (GVL_System.Manual_Mode AND GVL_Mastering.Cam_Trig);
-
-// 카메라 트리거 시점 엔코더 위치 캡처 (Target X 보정 기준, 구 Target_Distance)
-Cam_Trigger_Trig(CLK := GVL_Vision.Cam_Trigger);
-IF GVL_System.Auto_Mode AND Cam_Trigger_Trig.Q THEN
-    GVL_Vision.Cam_Trig_Position := GVL_Encoder.Real_Position;
+// ===== 런 10: Fiber_Sensor_Sensing — 후단(하강엣지)에서 기준점을 큐에 push =====
+IF GVL_System.Auto_Mode AND Fiber_Sensor_Trig.Q AND Trig_ON THEN
+    CamQueue.Push(GVL_Encoder.Real_Position);
+    Trig_ON := FALSE;   // push 후 무장 해제 → 다음 케이스는 다시 100ms 검증
 END_IF
 
-// ===== 런 15: Vision OFF Delay 타이머 =====
-Vision_OFF_Delay(IN := GVL_Vision.Cam_Trigger, PT := T#0.1S);
-IF Vision_OFF_Delay.Q THEN Vision_Delay := FALSE; END_IF
+// ===== 런 14: Cam_Trigger — head 기준점 + Cam_Trigger_Length 도달 시 1회 발동 + pop =====
+bCamDistReached := FALSE;
+IF GVL_System.Auto_Mode AND CamQueue.Count > 0
+   AND (CamQueue.HeadValue + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position) THEN
+    bCamDistReached := TRUE;
+    GVL_Vision.Cam_Trig_Position := GVL_Encoder.Real_Position;  // Target X 보정 기준(트리거 순간 엔코더)
+    CamQueue.Pop();
+END_IF
+
+// 오토모드 캠트리거만 구동 (마스터링은 Mastering.TcPOU 에서 별도 구동, 수동캠트리거 미사용)
+// 모드 배타 가드 — Vision_ST(Auto)·Mastering(Manual)이 같은 출력을 안 다툼.
+Cam_Trig_Pulse(IN := bCamDistReached, PT := T#0.1S);
+IF GVL_System.Auto_Mode THEN
+    GVL_Vision.Cam_Trigger := Cam_Trig_Pulse.Q;
+END_IF
+
+// ===== 런 15: 큐 flush — 오토이탈 또는 컨베이어 역방향(Conveyor_CCW) 시 정리 =====
+IF NOT GVL_System.Auto_Mode OR GVL_Encoder.Conveyor_CCW THEN
+    CamQueue.Clear();
+    Trig_ON := FALSE;
+END_IF
 
 // ===== 런 6: Target X 위치 계산 (캠트리거 위치 기준 이동보정) =====
 IF GVL_Vision.Data_Copy_Comp THEN
     GVL_Vision.Target_X_Real_Position_Data := GVL_Vision.Data_Buffer_X - (GVL_Encoder.Real_Position - GVL_Vision.Cam_Trig_Position);
 END_IF
 
-// Status 조건
-Status :=
-    ((GVL_Vision.Run AND GVL_System.Auto_Mode) OR (GVL_System.Manual_Mode AND GVL_System.Test_Mode))
-    AND GVL_System.Safety_ALL_OK;
+// Status 조건 — 오토모드에서만
+Status := GVL_Vision.Run AND GVL_System.Auto_Mode AND GVL_System.Safety_ALL_OK;
 
 IF Status THEN
     IF Step = 0 THEN
-        IF (Vision_OK_Trig.Q OR Vision_NG_Trig.Q) AND GVL_Vision.Run THEN
+        IF Vision_OK_Trig.Q AND GVL_Vision.Run THEN
             Step := 1;
         END_IF
     END_IF
 
     IF Step = 1 THEN
-        IF NOT GVL_Vision.Data_Copy_Comp THEN
-            IF GVL_Vision.Vision_OK THEN
-                Step := 5;
-            ELSIF GVL_Vision.Vision_NG THEN
-                Step := 15;
-            END_IF
+        IF NOT GVL_Vision.Data_Copy_Comp AND GVL_Vision.Vision_OK THEN
+            Step := 5;
         END_IF
     END_IF
 
@@ -98,8 +97,6 @@ IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_Y := 0;
     GVL_Vision.Data_Read_R := 0;
     GVL_Vision.Vision_OK := FALSE;
-    GVL_Vision.Vision_NG := FALSE;
-    Vision_Delay := FALSE;
     Data_Initial := FALSE;
 END_IF
 

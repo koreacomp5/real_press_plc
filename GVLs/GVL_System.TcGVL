@@ -96,7 +96,6 @@ VAR_GLOBAL
 	CV_STOP: BOOL;
 	
 
-	Manual_Cam_Trigger			: 	BOOL	;
 	Manual_Door_Bypass			: 	BOOL	;
 	HMI_Door_Bypass				: 	BOOL	;
 	Login						: 	BOOL	;

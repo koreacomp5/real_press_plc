@@ -165,6 +165,9 @@
     <Compile Include="POUs\FB_HomeBeforeMoveAX8000.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_LRealRingQueue.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
     </Compile>

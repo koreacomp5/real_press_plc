@@ -30,6 +30,12 @@ fbCamPulse(IN := bCamTrigTP, PT := T#200MS);
 GVL_Mastering.Cam_Trig := fbCamPulse.Q;
 bCamTrigTP := FALSE;
 
+// 마스터링(수동) 모드에서 카메라 물리 트리거(GVL_Vision.Cam_Trigger) 구동.
+// 오토모드는 Vision_ST 가 구동 — 모드가 배타적이라 두 POU 가 같은 출력을 안 다툼.
+IF GVL_System.Manual_Mode THEN
+    GVL_Vision.Cam_Trigger := GVL_Mastering.Cam_Trig;
+END_IF
+
 
 (* ──────────────────────────────────────────────────────────────
    [Back 트리거 처리]
