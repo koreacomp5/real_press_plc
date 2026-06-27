@@ -4,6 +4,7 @@
     <Declaration><![CDATA[(* 비전 결과 1세트 — 큐 적재 단위. 좌표 + 해당 캠트리거 위치를 한 묶음으로 보존. *)
 TYPE ST_VisionData :
 STRUCT
+    ID                : DINT;    // 비전 인식 ID (vision이 부여, 압입 추적용)
     X                 : LREAL;   // Data_Read_X
     Y                 : LREAL;   // Data_Read_Y
     Rot               : LREAL;   // Data_Read_R (R 은 IL Set/Reset 예약어라 Rot 사용)

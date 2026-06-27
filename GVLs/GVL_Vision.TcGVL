@@ -16,6 +16,7 @@ VAR_GLOBAL
 	Data_Empty								:	BOOL	;
 
 //Vision Data
+	Data_Read_ID							:	DINT	;	// 비전 인식 ID (vision이 부여, X/Y/R·Vision_OK 와 함께 전송)
 	Data_Read_X								:	LREAL	;
 	Data_Read_Y								:	LREAL	;
 	Data_Read_R								:	LREAL	;
@@ -54,12 +55,18 @@ VAR_GLOBAL
 	Vision_Q_Overflow						:	BOOL	;	// 비전 결과 큐 만재(무음 유실 경보)
 	Vision_Q_Count							:	INT		;	// 비전 결과 큐 적재 수(모니터)
 
+//Press 추적 (vision 대시보드용, 무손실 링버퍼) — vision은 각 Count 증가분만큼 Buf[(idx) MOD 256] 읽음
+	Pressed_ID_Buf		: ARRAY[0..255] OF DINT;	// 압입된 인식 ID
+	Skipped_ID_Buf		: ARRAY[0..255] OF DINT;	// 건너뛴 인식 ID
+	Skipped_Reason_Buf	: ARRAY[0..255] OF INT;		// 건너뛴 사유 (1=Wait지나 도달불가폐기, 2=R/Y지연 미압입abort, 3=큐만재 거부)
+
 
 END_VAR
 VAR_GLOBAL PERSISTENT
 	Cam_Trigger_Length						:	LREAL	;
 	Axis04_Mastering_Position_Data: LREAL;
-	Press_Count : UDINT;   // 실제 압입(Z 압입완료) 누적 횟수(전원 유지) — vision 대시보드 캡처용(ADS 읽기)
+	Press_Count : UDINT;   // 실제 압입(Z 압입완료) 누적 횟수(전원 유지) — Pressed_ID_Buf 읽기 기준
+	Skip_Count  : UDINT;   // 건너뛴 누적 횟수(전원 유지) — Skipped_ID/Reason_Buf 읽기 기준
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

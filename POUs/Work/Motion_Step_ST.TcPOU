@@ -8,6 +8,7 @@ VAR
     Vis_Item           : ST_VisionData;      // 큐 push 용 스크래치
     Vis_Head           : ST_VisionData;      // 큐 pop(Head) 용 스크래치
     Cam_Trig_Pos_Buf   : LREAL;              // 소비된 부품의 캠트리거 위치(Target X 보정 기준)
+    Active_ID          : DINT;               // 현재 처리(압입) 중 부품의 비전 인식 ID
     Cand_Target_X      : LREAL;              // pop 후보 부품의 현재 Target X (도달성 판단)
     Data_Initial       : BOOL;               // 캡처 직후 Data_Read/Vision_OK 초기화 예약
     Vision_Copy_Status : BOOL;               // 비전 캡처 게이트(오토 전용: Auto AND Safety)
@@ -32,6 +33,7 @@ GVL_Motion_Step.All_Initial := FALSE;
 // ===== 비전 결과 캡처 (덮어쓰기 방지) =====
 // 모션 가능여부와 무관하게, 가깝게 들어온 Vision_OK 결과를 매 엣지마다 큐에 전부 적재.
 IF GVL_System.Auto_Mode AND Vision_OK_Trig.Q THEN
+    Vis_Item.ID                := GVL_Vision.Data_Read_ID;        // 인식 ID 스냅샷
     Vis_Item.X                 := GVL_Vision.Data_Read_X;
     Vis_Item.Y                 := GVL_Vision.Data_Read_Y;
     Vis_Item.Rot               := GVL_Vision.Data_Read_R;
@@ -40,6 +42,10 @@ IF GVL_System.Auto_Mode AND Vision_OK_Trig.Q THEN
         GVL_Vision.Vision_Q_Overflow := FALSE;
     ELSE
         GVL_Vision.Vision_Q_Overflow := TRUE;   // 큐 만재 → 무음 유실 방지 경보(용량↑ 또는 프레스 처리율↑)
+        // 큐 만재로 미적재 → skip 보고 (reason 3)
+        GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Vis_Item.ID;
+        GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 3;
+        GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
     END_IF
     Data_Initial := TRUE;   // Data_Read/Vision_OK 초기화 → 다음 결과 수신 준비
 END_IF
@@ -74,10 +80,15 @@ IF GVL_System.Auto_Mode THEN
                     GVL_Vision.Data_Buffer_Y := Vis_Head.Y;
                     GVL_Vision.Data_Buffer_R := Vis_Head.Rot;
                     Cam_Trig_Pos_Buf         := Vis_Head.Cam_Trig_Position;
+                    Active_ID                := Vis_Head.ID;     // 처리 중 부품 ID 보관(압입 시 보고)
                     GVL_Motion_Step.Motion_Start := TRUE; // not use
                     GVL_Motion_Step.No := 1;
                 ELSE
-                    VisionQueue.Pop();   // Wait 통과(지나침) → 실패 폐기, 다음 부품 시도
+                    // Wait 통과(이미 지나침, 도달불가) → 폐기 + skip 보고 (reason 1)
+                    GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Vis_Head.ID;
+                    GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 1;
+                    GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
+                    VisionQueue.Pop();   // 폐기, 다음 부품 시도
                 END_IF
             END_IF
 
@@ -100,11 +111,17 @@ IF GVL_System.Auto_Mode THEN
                 GVL_Motion_Step.Z_Press_Start := TRUE;
             END_IF
             IF GVL_Axis04.Work_End_Position THEN
-                GVL_Vision.Press_Count := GVL_Vision.Press_Count + 1;   // 실제 압입(Z 압입완료) 1회 누적 — vision 캡처용
+                // 무손실 압입 ID 보고: 현재 count 슬롯에 ID 기록 → count 증가
+                GVL_Vision.Pressed_ID_Buf[GVL_Vision.Press_Count MOD 256] := Active_ID;
+                GVL_Vision.Press_Count := GVL_Vision.Press_Count + 1;   // vision은 Press_Count 증가분만큼 Buf 읽음
                 GVL_Motion_Step.No := 20;
             ELSIF GVL_Vision.Target_X_Real_Position_Data < 0
                   AND NOT GVL_Motion_Step.Z_Press_Start THEN
-                GVL_Motion_Step.No := 25;   // Z 미진입인데 부품이 0(센서 닿기 전 한계) 지나침 → No=25 MC_Stop 복귀
+                // 미압입(R/Y 지연) abort → skip 보고 (reason 2)
+                GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Active_ID;
+                GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 2;
+                GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
+                GVL_Motion_Step.No := 25;   // Z 미진입, 부품이 0(센서 닿기 전 한계) 지나침 → No=25 MC_Stop 복귀
             END_IF
 
         20: // Axis04 Wait Pos Moving
