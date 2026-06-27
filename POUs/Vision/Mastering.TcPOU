@@ -27,13 +27,12 @@ Fiber_Sensor_Trig(CLK := GVL_System.Fiber_Sensor);
 Back_Pos_Trig(CLK := GVL_Mastering.Back_Trig);
 
 fbCamPulse(IN := bCamTrigTP, PT := T#200MS);
-GVL_Mastering.Cam_Trig := fbCamPulse.Q;
 bCamTrigTP := FALSE;
 
 // 마스터링(수동) 모드에서 카메라 물리 트리거(GVL_Vision.Cam_Trigger) 구동.
 // 오토모드는 Vision_ST 가 구동 — 모드가 배타적이라 두 POU 가 같은 출력을 안 다툼.
 IF GVL_System.Manual_Mode THEN
-    GVL_Vision.Cam_Trigger := GVL_Mastering.Cam_Trig;
+    GVL_Vision.Cam_Trigger := fbCamPulse.Q;
 END_IF
 
 
@@ -61,7 +60,6 @@ IF GVL_System.All_Initial AND GVL_System.Manual_Mode THEN
     (* GVL 마스터링 변수 초기화 *)
     GVL_Mastering.mastering_vision_x      := 0;
     GVL_Mastering.Case_Length_Check_Start := FALSE;
-    GVL_Mastering.Cam_Trig                := FALSE;
     GVL_Mastering.Back_Trig               := FALSE;
     GVL_Mastering.Case_Length             := 0;
 
@@ -89,7 +87,6 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
         (* GVL 마스터링 변수 초기화 *)
         GVL_Mastering.mastering_vision_x  := 0;
-        GVL_Mastering.Cam_Trig            := FALSE;
         GVL_Mastering.Back_Trig           := FALSE;
         GVL_Mastering.Case_Length         := 0;
 
@@ -199,7 +196,7 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
                     bCamTrigTP := TRUE;
 
-                    IF GVL_Mastering.Cam_Trig AND GVL_Vision.Cam_Trigger THEN
+                    IF fbCamPulse.Q AND GVL_Vision.Cam_Trigger THEN
                         GVL_Mastering.Reshot_Position   := GVL_Encoder.Real_Position;
                         GVL_Axis04.M_Mastering_Pos_Move := FALSE;
                         Mastering_Step := 25;
@@ -218,7 +215,6 @@ IF GVL_Mastering.Case_Length_Check_Start AND GVL_System.Manual_Mode THEN
 
         (* 마스터링 관련 플래그 및 스텝 초기화 → 시퀀스 종료 *)
         GVL_Mastering.Case_Length_Check_Start := FALSE;
-        GVL_Mastering.Cam_Trig                := FALSE;
         GVL_Mastering.Back_Trig               := FALSE;
         Mastering_Step                        := 0;
 
