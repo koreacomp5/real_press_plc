@@ -11,15 +11,6 @@ VAR
     Cand_Target_X      : LREAL;              // pop 후보 부품의 현재 Target X (도달성 판단)
     Data_Initial       : BOOL;               // 캡처 직후 Data_Read/Vision_OK 초기화 예약
     Vision_Copy_Status : BOOL;               // 비전 캡처 게이트(오토 전용: Auto AND Safety)
-    // ── 사이클 스텝 기록(디버그) — No 전이마다 링버퍼에 기록 ──
-    Log_No      : ARRAY[0..99] OF INT;        // No 전이값
-    Log_Time    : ARRAY[0..99] OF DINT;       // 전이 시점 스캔카운트(≈ms)
-    Log_TgtX    : ARRAY[0..99] OF LREAL;      // 전이 시점 Target_X
-    Log_PosX    : ARRAY[0..99] OF LREAL;      // 전이 시점 Axis02 실제위치
-    Log_GearOut : ARRAY[0..99] OF BOOL;       // 전이 시점 Gear_Out_Done
-    Log_Idx     : INT;                        // 다음 기록 위치(가장 최근 = Log_Idx-1)
-    No_Last     : INT := -1;                  // 직전 No (변화 감지)
-    Scan_Cnt    : DINT;                       // 스캔 카운터
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -34,7 +25,6 @@ GVL_Motion_Step.Press_Start := FALSE;
 GVL_Motion_Step.Z_Press_Start := FALSE;
 GVL_Motion_Step.Axis04_Wait_Pos_Moving := FALSE;
 GVL_Motion_Step.Axis02_Stop := FALSE;
-GVL_Motion_Step.Force_Gear_Out := FALSE;
 GVL_Motion_Step.All_Axis_Wait_Pos_Moving := FALSE;
 GVL_Motion_Step.Work_Comp_Target_Pos_Moving := FALSE;
 GVL_Motion_Step.All_Initial := FALSE;
@@ -163,19 +153,6 @@ IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_R := 0;
     GVL_Vision.Vision_OK := FALSE;
     Data_Initial := FALSE;
-END_IF
-
-// ===== 사이클 스텝 기록 (디버그) — No 가 바뀔 때마다 링버퍼에 1줄 기록 =====
-// 크래시 후: Log_Idx 직전 인덱스부터 거꾸로 읽으면 경로 확인 (예: …10,15,30 / …10,20,25,30).
-Scan_Cnt := Scan_Cnt + 1;
-IF GVL_Motion_Step.No <> No_Last THEN
-    Log_No[Log_Idx]      := GVL_Motion_Step.No;
-    Log_Time[Log_Idx]    := Scan_Cnt;
-    Log_TgtX[Log_Idx]    := GVL_Vision.Target_X_Real_Position_Data;
-    Log_PosX[Log_Idx]    := GVL_Axis02.Real_Position;
-    Log_GearOut[Log_Idx] := GVL_Axis02.Gear_Out_Done;
-    Log_Idx := (Log_Idx + 1) MOD 100;
-    No_Last := GVL_Motion_Step.No;
 END_IF
 ]]></ST>
     </Implementation>
