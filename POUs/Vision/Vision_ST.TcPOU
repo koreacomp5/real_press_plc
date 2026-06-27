@@ -4,16 +4,18 @@
     <Declaration><![CDATA[PROGRAM Vision_ST
 VAR
     All_Initial_Trig         : R_TRIG;
-    Fiber_Sensor_Trig        : F_TRIG;
     Vision_OK_Trig           : R_TRIG;
-    Trig_ON                  : BOOL;
+    Fiber_Sensor_Trig        : F_TRIG;
+    Fiber_Sensor_Valid_TON   : TON;     // 파이버 센서 100ms 연속 ON = 유효 케이스 확인(디바운스)
+    Cam_Trig_Pulse           : TP;                 // 캠트리거 0.1s 펄스 정형
+
+    Case_Armed               : BOOL;    // 유효 케이스 무장(100ms 검증) → 후단에서 큐 push 대기, push/flush 시 해제
     Data_Initial             : BOOL;
     Status                   : BOOL;
     Step                     : UINT;    // 데이터 카피 시퀀스 스텝
-    Fiber_Sensor_Valid_TON   : TON;     // 파이버 센서 100ms 연속 ON = 유효 케이스 확인(디바운스)
-    CamQueue                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
+
     bCamDistReached          : BOOL;               // 이번 스캔 head 가 촬영거리 도달
-    Cam_Trig_Pulse           : TP;                 // 캠트리거 0.1s 펄스 정형
+    CamQueue                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -24,13 +26,13 @@ Fiber_Sensor_Valid_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
 
 // 무장(SET): 파이버 센서 100ms 연속 ON = 유효 케이스 (RESET 은 런10 push 시)
 IF Fiber_Sensor_Valid_TON.Q THEN
-    Trig_ON := TRUE;
+    Case_Armed := TRUE;
 END_IF
 
 // ===== 런 10: Fiber_Sensor_Sensing — 후단(하강엣지)에서 기준점을 큐에 push =====
-IF GVL_System.Auto_Mode AND Fiber_Sensor_Trig.Q AND Trig_ON THEN
+IF GVL_System.Auto_Mode AND Fiber_Sensor_Trig.Q AND Case_Armed THEN
     CamQueue.Push(GVL_Encoder.Real_Position);
-    Trig_ON := FALSE;   // push 후 무장 해제 → 다음 케이스는 다시 100ms 검증
+    Case_Armed := FALSE;   // push 후 무장 해제 → 다음 케이스는 다시 100ms 검증
 END_IF
 
 // ===== 런 14: Cam_Trigger — head 기준점 + Cam_Trigger_Length 도달 시 1회 발동 + pop =====
@@ -52,7 +54,7 @@ END_IF
 // ===== 런 15: 큐 flush — 오토이탈 또는 컨베이어 역방향(Conveyor_CCW) 시 정리 =====
 IF NOT GVL_System.Auto_Mode OR GVL_Encoder.Conveyor_CCW THEN
     CamQueue.Clear();
-    Trig_ON := FALSE;
+    Case_Armed := FALSE;
 END_IF
 
 // ===== 런 6: Target X 위치 계산 (캠트리거 위치 기준 이동보정) =====
