@@ -18,6 +18,9 @@
     <LibraryReferences>{df6e53ab-6573-413c-91d1-770d741cddf3}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DUTs\ST_VisionData.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GVLs\GVL_Alarm.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
@@ -159,13 +162,16 @@
     <Compile Include="POUs\Conv.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Data_Save.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\FB_HomeBeforeMoveAX8000.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_CamTrigger.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_LRealRingQueue.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_VisionDataQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">

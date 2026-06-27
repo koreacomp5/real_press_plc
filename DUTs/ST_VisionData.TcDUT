@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <DUT Name="ST_VisionData" Id="{c3d4e5f6-0002-4c02-9201-000000000201}">
+    <Declaration><![CDATA[(* 비전 결과 1세트 — 큐 적재 단위. 좌표 + 해당 캠트리거 위치를 한 묶음으로 보존. *)
+TYPE ST_VisionData :
+STRUCT
+    X                 : LREAL;   // Data_Read_X
+    Y                 : LREAL;   // Data_Read_Y
+    Rot               : LREAL;   // Data_Read_R (R 은 IL Set/Reset 예약어라 Rot 사용)
+    Cam_Trig_Position : LREAL;   // 이 결과의 캠트리거 시점 엔코더 위치(Target X 보정 기준)
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

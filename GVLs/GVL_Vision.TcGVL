@@ -62,6 +62,9 @@ VAR_GLOBAL
 
 	Data_Check: BOOL;
 
+	Vision_Q_Overflow						:	BOOL	;	// 비전 결과 큐 만재(무음 유실 경보)
+	Vision_Q_Count							:	INT		;	// 비전 결과 큐 적재 수(모니터)
+
 
 END_VAR
 VAR_GLOBAL PERSISTENT

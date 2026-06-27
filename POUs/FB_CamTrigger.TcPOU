@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="FB_CamTrigger" Id="{b2c3d4e5-0001-4b01-9101-000000000101}" SpecialFunc="None">
+    <Declaration><![CDATA[(* 캠트리거 파이프라인 — 파이버 센서 감지부터 카메라 트리거까지 (연속 리얼타임).
+   센서 100ms 디바운스 → 후단(하강엣지)에서 엔코더 기준점을 큐에 push →
+   head 기준점 + Trigger_Length 도달 시 1회 트리거 + pop. 오토모드 전용.
+   (수동/마스터링 캠트리거는 Mastering.TcPOU 에서 별도 구동)
+
+   pop 안전장치:
+     - 큐 만재 시 Push 거부 → Case_Armed 유지(무음 유실 방지)
+     - 위치 불연속(엔코더 리셋·대형 역행 점프) 시 큐 flush(stale head 방지)
+     - Reset(시스템초기화/사이클말) 시 큐 비움 *)
+FUNCTION_BLOCK FB_CamTrigger
+VAR_INPUT
+    Auto_Mode      : BOOL;     // 오토모드(미오토 시 큐 flush + 트리거 정지)
+    Fiber_Sensor   : BOOL;     // 파이버 센서 입력
+    Real_Position  : LREAL;    // 엔코더 실제 위치
+    Conveyor_CCW   : BOOL;     // 컨베이어 역방향(큐 flush)
+    Trigger_Length : LREAL;    // 기준점 + 이 거리 도달 시 트리거(GVL_Vision.Cam_Trigger_Length)
+    Reset          : BOOL;     // 시스템초기화/사이클말 큐 비움(레벨, 상승엣지에 1회 clear)
+END_VAR
+VAR_OUTPUT
+    Trigger        : BOOL;     // 0.1s 정형된 캠트리거 펄스(오토 발동분)
+    Trig_Position  : LREAL;    // 트리거 순간 엔코더 위치 래치(Target X 보정 기준)
+END_VAR
+VAR
+    Fiber_Trig         : F_TRIG;            // 센서 하강엣지(케이스 후단)
+    Valid_TON          : TON;               // 100ms 연속 ON = 유효 케이스(디바운스)
+    Trig_Pulse         : TP;                // 0.1s 펄스 정형
+    Reset_Trig         : R_TRIG;            // Reset 상승엣지
+    Case_Armed         : BOOL;              // 유효 케이스 무장 → 후단 push 대기, push/flush 시 해제
+    bDistReached       : BOOL;              // 이번 스캔 head 가 촬영거리 도달
+    Last_Real_Position : LREAL;             // 직전 스캔 엔코더 위치(위치 불연속 감지용)
+    Queue              : FB_LRealRingQueue; // 캠트리거 기준점 큐(용량5)
+    RESET_JUMP_MIN     : LREAL := 100;      // 역방향 점프 임계(>1스캔 최대 이송) — 엔코더 스케일 맞춰 튜닝
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Fiber_Trig(CLK := Fiber_Sensor);
+Valid_TON(IN := Fiber_Sensor, PT := T#100MS);
+Reset_Trig(CLK := Reset);
+
+// 무장(SET): 파이버 센서 100ms 연속 ON = 유효 케이스 (RESET 은 push 성공 시)
+IF Valid_TON.Q THEN
+    Case_Armed := TRUE;
+END_IF
+
+// ===== 후단(하강엣지)에서 기준점을 큐에 push =====
+IF Auto_Mode AND Fiber_Trig.Q AND Case_Armed THEN
+    // push 성공 시에만 무장 해제. 큐 만재(거부)면 Case_Armed 유지 → 무음 유실 방지
+    IF Queue.Push(Real_Position) THEN
+        Case_Armed := FALSE;
+    END_IF
+END_IF
+
+// ===== head 기준점 + Trigger_Length 도달 시 1회 발동 + pop =====
+bDistReached := FALSE;
+IF Auto_Mode
+   AND Trigger_Length > 0       // 길이 오설정(0/음수) 시 과트리거 방지(pop 보호)
+   AND Queue.Count > 0
+   AND (Queue.HeadValue + Trigger_Length <= Real_Position) THEN
+    bDistReached := TRUE;
+    Trig_Position := Real_Position;   // 트리거 순간 엔코더 래치(Target X 보정 기준)
+    Queue.Pop();
+END_IF
+
+// 0.1s 펄스 정형
+Trig_Pulse(IN := bDistReached, PT := T#0.1S);
+Trigger := Trig_Pulse.Q;
+
+// ===== 큐 flush =====
+//  (1) 오토 이탈 / 컨베이어 역방향(Conveyor_CCW)
+//  (2) 위치 불연속(엔코더 리셋 Set_Pos · 대형 역행 점프): head 기준점이 영구 도달불가가 되어
+//      pop 정지 → stale 큐(Cam_Trig_Position 오류) 방지. 정상 전진/pop 시 Real 은 뒤로
+//      점프하지 않으므로 오검출 없음. (RESET_JUMP_MIN 은 1스캔 최대 이송보다 크게 튜닝)
+IF NOT Auto_Mode
+   OR Conveyor_CCW
+   OR ((Last_Real_Position - Real_Position) > RESET_JUMP_MIN) THEN
+    Queue.Clear();
+    Case_Armed := FALSE;
+END_IF
+Last_Real_Position := Real_Position;
+
+// ===== 시스템 초기화 / 사이클말 큐 비움 (구 Vision_ST run7 의 큐 clear) =====
+IF Reset_Trig.Q THEN
+    Queue.Clear();
+    Case_Armed := FALSE;
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

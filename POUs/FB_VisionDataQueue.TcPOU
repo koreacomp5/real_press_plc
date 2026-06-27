@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="FB_VisionDataQueue" Id="{c3d4e5f6-0010-4c10-9210-000000000210}" SpecialFunc="None">
+    <Declaration><![CDATA[(* 비전 결과(ST_VisionData) 링버퍼(FIFO) — 가깝게 연속 도착하는 결과를 덮어쓰지 않고 적재.
+   FB_LRealRingQueue 와 동일한 링버퍼 패턴을 좌표 세트(struct)용으로 확장. *)
+FUNCTION_BLOCK FB_VisionDataQueue
+VAR CONSTANT
+    CAPACITY : INT := 16;          // 링버퍼 칸 수(고정) — 버스트 폭에 맞춰 튜닝
+END_VAR
+VAR
+    buf  : ARRAY[0..15] OF ST_VisionData;  // 결과 저장(크기 = CAPACITY)
+    head : INT;                            // pop 위치(가장 오래된 항목)
+    tail : INT;                            // push 위치(다음 빈 칸)
+    cnt  : INT;                            // 적재 수
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Push" Id="{c3d4e5f6-0011-4c11-9211-000000000211}">
+      <Declaration><![CDATA[METHOD Push : BOOL
+VAR_INPUT
+    val : ST_VisionData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF cnt >= CAPACITY THEN
+    Push := FALSE;            // 가득 — 거부(무음 유실 방지: 호출측에서 경보)
+    RETURN;
+END_IF
+buf[tail] := val;
+tail := (tail + 1) MOD CAPACITY;
+cnt  := cnt + 1;
+Push := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Pop" Id="{c3d4e5f6-0012-4c12-9212-000000000212}">
+      <Declaration><![CDATA[METHOD Pop : BOOL]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF cnt <= 0 THEN
+    Pop := FALSE;            // 비어있음
+    RETURN;
+END_IF
+head := (head + 1) MOD CAPACITY;
+cnt  := cnt - 1;
+Pop := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear" Id="{c3d4e5f6-0013-4c13-9213-000000000213}">
+      <Declaration><![CDATA[METHOD Clear]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[head := 0;
+tail := 0;
+cnt  := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Count" Id="{c3d4e5f6-0014-4c14-9214-000000000214}">
+      <Declaration><![CDATA[PROPERTY Count : INT]]></Declaration>
+      <Get Name="Get" Id="{c3d4e5f6-0015-4c15-9215-000000000215}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Count := cnt;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Head" Id="{c3d4e5f6-0016-4c16-9216-000000000216}">
+      <Declaration><![CDATA[PROPERTY Head : ST_VisionData]]></Declaration>
+      <Get Name="Get" Id="{c3d4e5f6-0017-4c17-9217-000000000217}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF cnt > 0 THEN
+    Head := buf[head];
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+  </POU>
+</TcPlcObject>
