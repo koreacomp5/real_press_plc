@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Vision_ST" Id="{eed554c4-fc1a-4baf-9f60-2c5a21e38ff5}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Vision_ST
 VAR
@@ -16,6 +16,8 @@ VAR
 
     bCamDistReached          : BOOL;               // 이번 스캔 head 가 촬영거리 도달
     CamQueue                 : FB_LRealRingQueue;  // 캠트리거 기준점 큐(용량5)
+    Last_Real_Position       : LREAL;              // 직전 스캔 엔코더 위치 (위치 불연속 감지용)
+    RESET_JUMP_MIN           : LREAL := 100;       // 역방향 점프 임계(>1스캔 최대 이송) — 엔코더 스케일 맞춰 튜닝
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -32,14 +34,17 @@ END_IF
 
 // ===== 런 10: Fiber_Sensor_Sensing — 후단(하강엣지)에서 기준점을 큐에 push =====
 IF GVL_System.Auto_Mode AND Fiber_Sensor_Trig.Q AND Case_Armed THEN
-    CamQueue.Push(GVL_Encoder.Real_Position);
-    Case_Armed := FALSE;   // push 후 무장 해제 → 다음 케이스는 다시 100ms 검증
+    // push 성공 시에만 무장 해제. 큐 만재(거부)면 Case_Armed 유지 → 무음 유실 방지
+    IF CamQueue.Push(GVL_Encoder.Real_Position) THEN
+        Case_Armed := FALSE;
+    END_IF
 END_IF
 
 // ===== 런 14: Cam_Trigger — head 기준점 + Cam_Trigger_Length 도달 시 1회 발동 + pop =====
 bCamDistReached := FALSE;
-IF GVL_System.Auto_Mode AND CamQueue.Count > 0
-   AND (CamQueue.HeadValue + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position) THEN
+IF GVL_System.Auto_Mode 
+    AND CamQueue.Count > 0
+    AND (CamQueue.HeadValue + GVL_Vision.Cam_Trigger_Length <= GVL_Encoder.Real_Position) THEN
     bCamDistReached := TRUE;
     GVL_Vision.Cam_Trig_Position := GVL_Encoder.Real_Position;  // Target X 보정 기준(트리거 순간 엔코더)
     CamQueue.Pop();
@@ -52,11 +57,18 @@ IF GVL_System.Auto_Mode THEN
     GVL_Vision.Cam_Trigger := Cam_Trig_Pulse.Q;
 END_IF
 
-// ===== 런 15: 큐 flush — 오토이탈 또는 컨베이어 역방향(Conveyor_CCW) 시 정리 =====
-IF NOT GVL_System.Auto_Mode OR GVL_Encoder.Conveyor_CCW THEN
+// ===== 런 15: 큐 flush =====
+//  (1) 오토 이탈 / 컨베이어 역방향(Conveyor_CCW)
+//  (2) 위치 불연속(엔코더 리셋 Set_Pos · 대형 역행 점프): head 기준점이 영구 도달불가가 되어
+//      pop 정지 → stale 큐(Cam_Trig_Position 오류) 방지. 정상 전진/pop 시 Real 은
+//      뒤로 점프하지 않으므로 오검출 없음. (RESET_JUMP_MIN 은 1스캔 최대 이송보다 크게 튜닝)
+IF NOT GVL_System.Auto_Mode
+   OR GVL_Encoder.Conveyor_CCW
+   OR ((Last_Real_Position - GVL_Encoder.Real_Position) > RESET_JUMP_MIN) THEN
     CamQueue.Clear();
     Case_Armed := FALSE;
 END_IF
+Last_Real_Position := GVL_Encoder.Real_Position;
 
 // ===== 런 6: Target X 위치 계산 (캠트리거 위치 기준 이동보정) =====
 IF GVL_Vision.Data_Copy_Comp THEN
@@ -64,7 +76,7 @@ IF GVL_Vision.Data_Copy_Comp THEN
 END_IF
 
 // Status 조건 — 오토모드에서만
-Status := GVL_Vision.Run AND GVL_System.Auto_Mode AND GVL_System.Safety_ALL_OK;
+Status :=  GVL_System.Auto_Mode AND GVL_System.Safety_ALL_OK;
 
 IF Status THEN
     IF Step = 0 THEN
@@ -122,6 +134,8 @@ IF All_Initial_Trig.Q THEN
     GVL_Vision.Press_Speed := 0;
     GVL_Vision.Travel_Distance := 0;
     GVL_Vision.Moving_Time := 0;
+    CamQueue.Clear();           // 시스템 초기화 시 캠트리거 큐 비움
+    Case_Armed := FALSE;
 END_IF
 
 // ===== 런 16: Vision Light ON =====
@@ -160,13 +174,7 @@ GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON
       <LineId Id="1903" Count="0" />
       <LineId Id="1606" Count="0" />
       <LineId Id="1614" Count="8" />
-      <LineId Id="1630" Count="2" />
-      <LineId Id="1634" Count="10" />
-      <LineId Id="1597" Count="0" />
-      <LineId Id="1647" Count="0" />
-      <LineId Id="1505" Count="2" />
-      <LineId Id="1814" Count="1" />
-      <LineId Id="1438" Count="0" />
+      <LineId Id="1630" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>
