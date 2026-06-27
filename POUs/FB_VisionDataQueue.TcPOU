@@ -5,10 +5,10 @@
    FB_LRealRingQueue 와 동일한 링버퍼 패턴을 좌표 세트(struct)용으로 확장. *)
 FUNCTION_BLOCK FB_VisionDataQueue
 VAR CONSTANT
-    CAPACITY : INT := 16;          // 링버퍼 칸 수(고정) — 버스트 폭에 맞춰 튜닝
+    CAPACITY : INT := 5;           // 링버퍼 칸 수(고정) — 버스트 폭에 맞춰 튜닝
 END_VAR
 VAR
-    buf  : ARRAY[0..15] OF ST_VisionData;  // 결과 저장(크기 = CAPACITY)
+    buf  : ARRAY[0..4] OF ST_VisionData;   // 결과 저장(크기 = CAPACITY)
     head : INT;                            // pop 위치(가장 오래된 항목)
     tail : INT;                            // push 위치(다음 빈 칸)
     cnt  : INT;                            // 적재 수

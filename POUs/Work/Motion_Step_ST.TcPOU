@@ -4,7 +4,7 @@
     <Declaration><![CDATA[PROGRAM Motion_Step_ST
 VAR
     Vision_OK_Trig     : R_TRIG;             // 비전 OK 상승엣지(결과 캡처)
-    VisionQueue        : FB_VisionDataQueue; // 비전 결과 큐(덮어쓰기 방지, 용량16)
+    VisionQueue        : FB_VisionDataQueue; // 비전 결과 큐(덮어쓰기 방지, 용량5)
     Vis_Item           : ST_VisionData;      // 큐 push 용 스크래치
     Vis_Head           : ST_VisionData;      // 큐 pop(Head) 용 스크래치
     Cam_Trig_Pos_Buf   : LREAL;              // 소비된 부품의 캠트리거 위치(Target X 보정 기준)
