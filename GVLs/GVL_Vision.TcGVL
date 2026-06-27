@@ -60,6 +60,8 @@ VAR_GLOBAL
 	Skipped_ID_Buf		: ARRAY[0..255] OF DINT;	// 건너뛴 인식 ID
 	Skipped_Reason_Buf	: ARRAY[0..255] OF INT;		// 건너뛴 사유 (1=Wait지나 도달불가폐기, 2=R/Y지연 미압입abort, 3=큐만재 거부)
 
+	Stop_On_Fail		:	BOOL	;	// (vision 이 ON/OFF) TRUE 면 프레스 실패 시 컨베이어 정지 + 수동 전환. 기본 FALSE(안전)
+
 
 END_VAR
 VAR_GLOBAL PERSISTENT

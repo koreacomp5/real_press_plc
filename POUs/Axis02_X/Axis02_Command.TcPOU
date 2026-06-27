@@ -383,7 +383,7 @@ END_VAR
                         </o>
                         <o>
                           <o n="Operand" t="Operand">
-                            <v n="Operand">"5"</v>
+                            <v n="Operand">"10"</v>
                             <v n="Type">"INT"</v>
                             <v n="Comment">""</v>
                             <v n="SymbolComment">""</v>
@@ -421,7 +421,7 @@ END_VAR
                         </o>
                         <o>
                           <o n="Operand" t="Operand">
-                            <v n="Operand">"5"</v>
+                            <v n="Operand">"10"</v>
                             <v n="Type">"INT"</v>
                             <v n="Comment">""</v>
                             <v n="SymbolComment">""</v>
@@ -459,7 +459,7 @@ END_VAR
                         </o>
                         <o>
                           <o n="Operand" t="Operand">
-                            <v n="Operand">"5"</v>
+                            <v n="Operand">"10"</v>
                             <v n="Type">"INT"</v>
                             <v n="Comment">""</v>
                             <v n="SymbolComment">""</v>
@@ -2627,10 +2627,34 @@ END_VAR
                   <v n="Title">""</v>
                   <v n="Label">""</v>
                   <v n="OutCommented">false</v>
-                  <l2 n="NetworkItems">
-                    <o t="BoxTreeDemux">
-                      <v n="VarId">3</v>
-                      <o n="Input" t="BoxTreeBox">
+                  <l2 n="NetworkItems" cet="BoxTreeAssign">
+                    <o>
+                      <o n="OutputItems" t="OutputItemList">
+                        <l2 n="OutputItems" cet="Operand">
+                          <o>
+                            <v n="Operand">"GVL_Axis02.Work_End_Position"</v>
+                            <v n="Type">"BOOL"</v>
+                            <v n="Comment">""</v>
+                            <v n="SymbolComment">""</v>
+                            <v n="Address">""</v>
+                            <o n="Flags" t="Flags">
+                              <v n="Flags">2</v>
+                              <v n="Fixed">true</v>
+                              <v n="Extensible">false</v>
+                            </o>
+                            <v n="LValue">true</v>
+                            <v n="Boolean">false</v>
+                            <v n="IsInstance">false</v>
+                            <v n="Id">8160L</v>
+                          </o>
+                        </l2>
+                      </o>
+                      <o n="Flags" t="Flags">
+                        <v n="Flags">0</v>
+                        <v n="Fixed">false</v>
+                        <v n="Extensible">false</v>
+                      </o>
+                      <o n="RValue" t="BoxTreeBox">
                         <v n="BoxType">"MC_GearOut"</v>
                         <o n="Instance" t="Operand">
                           <v n="Operand">"Axis02_Work_End_Comp"</v>
@@ -2789,45 +2813,7 @@ END_VAR
                         <v n="ProvidesSTSnippet">false</v>
                         <v n="Id">8151L</v>
                       </o>
-                      <v n="Id">8299L</v>
-                    </o>
-                    <o t="BoxTreeAssign">
-                      <o n="OutputItems" t="OutputItemList">
-                        <l2 n="OutputItems" cet="Operand">
-                          <o>
-                            <v n="Operand">"GVL_Axis02.Work_End_Position"</v>
-                            <v n="Type">"BOOL"</v>
-                            <v n="Comment">""</v>
-                            <v n="SymbolComment">""</v>
-                            <v n="Address">""</v>
-                            <o n="Flags" t="Flags">
-                              <v n="Flags">2</v>
-                              <v n="Fixed">true</v>
-                              <v n="Extensible">false</v>
-                            </o>
-                            <v n="LValue">true</v>
-                            <v n="Boolean">false</v>
-                            <v n="IsInstance">false</v>
-                            <v n="Id">8160L</v>
-                          </o>
-                        </l2>
-                      </o>
-                      <o n="Flags" t="Flags">
-                        <v n="Flags">0</v>
-                        <v n="Fixed">false</v>
-                        <v n="Extensible">false</v>
-                      </o>
-                      <o n="RValue" t="BoxTreeDemux">
-                        <v n="VarId">3</v>
-                        <n n="Input" />
-                        <v n="Id">8300L</v>
-                      </o>
                       <v n="Id">8161L</v>
-                    </o>
-                    <o t="BoxTreeDemux">
-                      <v n="VarId">3</v>
-                      <n n="Input" />
-                      <v n="Id">8301L</v>
                     </o>
                   </l2>
                   <l2 n="Connectors" />
@@ -3510,7 +3496,7 @@ END_VAR
                   <v n="Id">8218L</v>
                 </o>
               </l2>
-              <v n="BranchCounter">3</v>
+              <v n="BranchCounter">4</v>
               <v n="ValidIds">true</v>
             </o>
           </Data>
@@ -3518,7 +3504,6 @@ END_VAR
             <Type n="Boolean">System.Boolean</Type>
             <Type n="BoxTreeAssign">{9873c309-1f09-4ebf-9078-42d8057ef11b}</Type>
             <Type n="BoxTreeBox">{acfc6f68-8e3a-4af5-bf81-3dd512095a46}</Type>
-            <Type n="BoxTreeDemux">{b1d55618-017c-4bc5-990a-55c2f27d9d3a}</Type>
             <Type n="BoxTreeOperand">{9de7f100-1b87-424c-a62e-45b0cfc85ed2}</Type>
             <Type n="Flags">{668066f2-6069-46b3-8962-8db8d13d7db2}</Type>
             <Type n="Int32">System.Int32</Type>

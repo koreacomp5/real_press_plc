@@ -9,9 +9,16 @@ VAR
     Vis_Head           : ST_VisionData;      // 큐 pop(Head) 용 스크래치
     Cam_Trig_Pos_Buf   : LREAL;              // 소비된 부품의 캠트리거 위치(Target X 보정 기준)
     Active_ID          : DINT;               // 현재 처리(압입) 중 부품의 비전 인식 ID
+    Skip_Event         : BOOL;               // 이번 스캔 프레스 실패(skip) 발생 — NG 부저 트리거(매 스캔 클리어)
+    NG_Playing         : BOOL;               // NG 모스 부저 재생 중
+    NG_Timer           : TON;                // NG 패턴 경과시간 타이머(한 번 ≈ 1초)
     Cand_Target_X      : LREAL;              // pop 후보 부품의 현재 Target X (도달성 판단)
     Data_Initial       : BOOL;               // 캡처 직후 Data_Read/Vision_OK 초기화 예약
     Vision_Copy_Status : BOOL;               // 비전 캡처 게이트(오토 전용: Auto AND Safety)
+    Stop_Req           : BOOL;               // (옵션) 프레스 실패 정지 요청 래치 — No=0(안전·X기어해제)에서 All_Motor_Stop 적용
+    Auto_Resume_Trig   : R_TRIG;             // 오토 재요청 상승엣지(정지 해제·복구)
+    X_Coupled          : BOOL;               // X(Axis02) 기어 커플 상태 추적 — Press_Start에서 래치, Work_End_Position에서 해제
+    Manual_Nudge       : BOOL;               // 림보(Auto·Manual 둘다 OFF) 탈출용 수동요청 넛지 플래그
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -29,6 +36,7 @@ GVL_Motion_Step.Axis02_Stop := FALSE;
 GVL_Motion_Step.All_Axis_Wait_Pos_Moving := FALSE;
 GVL_Motion_Step.Work_Comp_Target_Pos_Moving := FALSE;
 GVL_Motion_Step.All_Initial := FALSE;
+Skip_Event := FALSE;   // 매 스캔 클리어 (skip 발생 스캔만 TRUE)
 
 // ===== 비전 결과 캡처 (덮어쓰기 방지) =====
 // 모션 가능여부와 무관하게, 가깝게 들어온 Vision_OK 결과를 매 엣지마다 큐에 전부 적재.
@@ -46,6 +54,7 @@ IF GVL_System.Auto_Mode AND Vision_OK_Trig.Q THEN
         GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Vis_Item.ID;
         GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 3;
         GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
+        Skip_Event := TRUE;   // 프레스 실패 → 부저 펄스 트리거
     END_IF
     Data_Initial := TRUE;   // Data_Read/Vision_OK 초기화 → 다음 결과 수신 준비
 END_IF
@@ -70,7 +79,11 @@ IF GVL_System.Auto_Mode THEN
     CASE GVL_Motion_Step.No OF
 
         0:  // 큐에서 다음 부품 pop. Wait 위치를 지나친(도달불가) 부품은 폐기(실패), 도달 가능한 것만 적재.
-            IF VisionQueue.Count > 0 THEN
+            IF Stop_Req THEN
+                // (옵션) 실패 정지 요청 대기 — 사이클 안전종료·X 기어해제 유휴에서만 정지 적용. pop 보류.
+                GVL_System.All_Motor_Stop := TRUE;     // Auto 차단(→ 수동, 아래 넛지가 Manual 진입)
+                GVL_Conv.Motor_STOP := TRUE;           // 실제 컨베이어 정지(Conv.TcPOU 가 모든 컨베이어 출력 OFF)
+            ELSIF VisionQueue.Count > 0 THEN
                 Vis_Head := VisionQueue.HeadData;    // 가장 오래된 항목
                 Cand_Target_X := Vis_Head.X - (GVL_Encoder.Real_Position - Vis_Head.Cam_Trig_Position);
                 IF Cand_Target_X >= GVL_Axis02.Wait_Position_Data THEN
@@ -88,6 +101,7 @@ IF GVL_System.Auto_Mode THEN
                     GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Vis_Head.ID;
                     GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 1;
                     GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
+                    Skip_Event := TRUE;   // 프레스 실패 → 부저 펄스 트리거
                     VisionQueue.Pop();   // 폐기, 다음 부품 시도
                 END_IF
             END_IF
@@ -121,6 +135,7 @@ IF GVL_System.Auto_Mode THEN
                 GVL_Vision.Skipped_ID_Buf[GVL_Vision.Skip_Count MOD 256]     := Active_ID;
                 GVL_Vision.Skipped_Reason_Buf[GVL_Vision.Skip_Count MOD 256] := 2;
                 GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
+                Skip_Event := TRUE;   // 프레스 실패 → 부저 펄스 트리거
                 GVL_Motion_Step.No := 25;   // Z 미진입, 부품이 0(센서 닿기 전 한계) 지나침 → No=25 MC_Stop 복귀
             END_IF
 
@@ -164,6 +179,21 @@ IF GVL_System.Auto_Mode THEN
 
 END_IF
 
+// ===== X 기어 커플 추적 + Auto 이탈 시 강제 디커플 (수동전환·안전 등 어떤 이유로든 기어인 방치 방지) =====
+// 기존엔 디커플 체인(Axis02_Stop→MC_Stop→MC_GearOut)이 Auto No=25 에서만 트리거 → Auto 빠지면 X 기어인 잔류.
+// Press_Start(기어인)에서 커플 래치, Work_End_Position(MC_GearOut.Done)에서 해제.
+IF GVL_Motion_Step.Press_Start THEN
+    X_Coupled := TRUE;
+END_IF
+IF GVL_Axis02.Work_End_Position THEN
+    X_Coupled := FALSE;
+END_IF
+// Auto 가 빠졌는데 X가 아직 커플이면 → No 머신과 무관하게 디커플 체인 강제 구동(Axis02_Command 는 매 스캔 실행).
+// 디커플 완료 시 X_Coupled 해제 → 코일초기화로 Axis02_Stop 자동 release → 수동 조그 가능.
+IF X_Coupled AND NOT GVL_System.Auto_Mode THEN
+    GVL_Motion_Step.Axis02_Stop := TRUE;
+END_IF
+
 // Vision 데이터 초기화 (캡처 직후 다음 결과 수신 준비) =====
 IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_X := 0;
@@ -171,6 +201,51 @@ IF Data_Initial OR GVL_System.All_Initial THEN
     GVL_Vision.Data_Read_R := 0;
     GVL_Vision.Vision_OK := FALSE;
     Data_Initial := FALSE;
+END_IF
+
+// ===== 프레스 실패(비전 왔는데 미압입) 부저 — "NG" 모스부호 (N:―· G:――·), 알람부저와 구분 =====
+// 단위 60ms, 한 번 재생 ≈ 1초. skip 시 1회 재생. 중지·에러 없이 부저만, System 부저에 OR(비파괴).
+IF NG_Timer.Q THEN
+    NG_Playing := FALSE;
+END_IF
+IF Skip_Event THEN
+    NG_Playing := TRUE;   // 실패 → NG 재생 시작(재생 중 추가 실패는 현재 재생 끝난 뒤 새로 시작)
+END_IF
+NG_Timer(IN := NG_Playing, PT := T#1020MS);
+GVL_System.Buzzer := GVL_System.Buzzer OR (NG_Playing AND (
+       (NG_Timer.ET <  T#180MS)                                  // N: dash(―)
+    OR (NG_Timer.ET >= T#240MS AND NG_Timer.ET < T#300MS)        // N: dot(·)
+    OR (NG_Timer.ET >= T#480MS AND NG_Timer.ET < T#660MS)        // G: dash(―)
+    OR (NG_Timer.ET >= T#720MS AND NG_Timer.ET < T#900MS)        // G: dash(―)
+    OR (NG_Timer.ET >= T#960MS AND NG_Timer.ET < T#1020MS)));    // G: dot(·)
+
+// ===== (옵션) 프레스 실패 시 컨베이어 정지 + 수동 전환 — vision 이 GVL_Vision.Stop_On_Fail 로 ON/OFF =====
+// 실패(skip) → Stop_Req 래치. 실제 정지는 No=0(사이클 안전종료·X 기어해제)에서 All_Motor_Stop 적용(위 CASE 0).
+// All_Motor_Stop=TRUE → Auto 차단(→ 수동, 넛지가 Manual 진입) / Motor_STOP=TRUE → 컨베이어 정지(Conv.TcPOU). 알람/에러 없음. 수동 조작은 안 막음.
+// 복구: 오토 재요청(HMI_Auto_Mode) 상승엣지 또는 리셋(All_Initial) 시 Stop_Req·All_Motor_Stop·Motor_STOP 해제.
+IF Skip_Event AND GVL_Vision.Stop_On_Fail THEN
+    Stop_Req := TRUE;
+END_IF
+Auto_Resume_Trig(CLK := GVL_System.HMI_Auto_Mode);
+IF Auto_Resume_Trig.Q OR GVL_System.All_Initial THEN
+    Stop_Req := FALSE;
+    GVL_System.All_Motor_Stop := FALSE;
+    GVL_Conv.Motor_STOP := FALSE;
+END_IF
+
+// ===== 림보(Auto·Manual 둘 다 OFF) 자동 탈출 → 수동 진입 =====
+// Manual_Mode 진입은 (HMI_Manual_Mode AND NOT Each_Motor_Busy) 게이트라, 동작 중(gear-in/압입) 모드전환 시
+// Auto 자기유지만 끊겨 Auto OFF·Manual 못 들어가는 림보 발생(모멘터리 수동버튼·fail-stop 공통).
+// 모터 정지·안전·오토요청 아님이면 수동요청을 넣어 Manual 을 래치시키고, 진입되면 떼어냄.
+// (HMI 는 버튼 누를 때만 HMI_Manual_Mode 를 쓰므로 평소엔 건드리지 않아 충돌 없음)
+IF NOT GVL_System.Auto_Mode AND NOT GVL_System.Manual_Mode
+   AND GVL_System.Safety_ALL_OK AND NOT GVL_System.Each_Motor_Busy
+   AND NOT GVL_System.HMI_Auto_Mode THEN
+    GVL_System.HMI_Manual_Mode := TRUE;    // 수동 진입 넛지
+    Manual_Nudge := TRUE;
+ELSIF Manual_Nudge THEN
+    GVL_System.HMI_Manual_Mode := FALSE;   // 넛지로 set 한 것만 해제(진입 완료 후) — 오토 복귀 막지 않게
+    Manual_Nudge := FALSE;
 END_IF
 ]]></ST>
     </Implementation>
