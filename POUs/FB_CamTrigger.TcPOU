@@ -24,8 +24,12 @@ VAR_OUTPUT
     Trig_Position  : LREAL;    // 트리거 순간 엔코더 위치 래치(Target X 보정 기준)
 END_VAR
 VAR
-    Fiber_Trig         : F_TRIG;            // 센서 하강엣지(케이스 후단)
-    Valid_TON          : TON;               // 100ms 연속 ON = 유효 케이스(디바운스)
+    Fiber_Trig         : F_TRIG;            // 센서 하강엣지(후단 후보 위치 캡처용)
+    Valid_TON          : TON;               // 100ms 연속 ON = 유효 케이스(전단 디바운스)
+    Off_TON            : TON;               // 후단 디바운스: OFF_DEBOUNCE 연속 OFF 여야 진짜 후단으로 인정
+    Off_Confirm        : R_TRIG;            // 후단 확정(블립 아님) 상승엣지
+    Trailing_Pos       : LREAL;             // 하강엣지 순간 캡처한 후단 위치(디바운스 통과 시 이 위치를 push)
+    OFF_DEBOUNCE       : TIME := T#50MS;    // 후단 OFF 디바운스 — 부품 간 최소 OFF 보다 짧게 튜닝(길면 가까운 부품 병합)
     Trig_Pulse         : TP;                // 0.1s 펄스 정형
     Reset_Trig         : R_TRIG;            // Reset 상승엣지
     Case_Armed         : BOOL;              // 유효 케이스 무장 → 후단 push 대기, push/flush 시 해제
@@ -37,6 +41,8 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[Fiber_Trig(CLK := Fiber_Sensor);
 Valid_TON(IN := Fiber_Sensor, PT := T#100MS);
+Off_TON(IN := NOT Fiber_Sensor, PT := OFF_DEBOUNCE);   // 후단 디바운스: OFF 가 연속 유지돼야 확정
+Off_Confirm(CLK := Off_TON.Q);                          // 확정 후단(블립 아님) 상승엣지
 Reset_Trig(CLK := Reset);
 
 // 무장(SET): 파이버 센서 100ms 연속 ON = 유효 케이스 (RESET 은 push 성공 시)
@@ -44,10 +50,16 @@ IF Valid_TON.Q THEN
     Case_Armed := TRUE;
 END_IF
 
-// ===== 후단(하강엣지)에서 기준점을 큐에 push =====
-IF Auto_Mode AND Fiber_Trig.Q AND Case_Armed THEN
+// 하강엣지 순간 후단 위치 캡처 (디바운스 통과 시 이 위치를 push — push 는 OFF_DEBOUNCE 만큼 늦어도 위치는 진짜 후단)
+IF Fiber_Trig.Q THEN
+    Trailing_Pos := Real_Position;
+END_IF
+
+// ===== 후단 확정(OFF_DEBOUNCE 연속 OFF) 시 기준점을 큐에 push =====
+// OFF_DEBOUNCE 미만의 마진 OFF/블립은 Off_TON 이 리셋되어 무시 → 가까운 부품 조기 트리거 방지.
+IF Auto_Mode AND Off_Confirm.Q AND Case_Armed THEN
     // push 성공 시에만 무장 해제. 큐 만재(거부)면 Case_Armed 유지 → 무음 유실 방지
-    IF Queue.Push(Real_Position) THEN
+    IF Queue.Push(Trailing_Pos) THEN
         Case_Armed := FALSE;
     END_IF
 END_IF
@@ -57,9 +69,12 @@ bDistReached := FALSE;
 IF Auto_Mode
    AND Trigger_Length > 0       // 길이 오설정(0/음수) 시 과트리거 방지(pop 보호)
    AND Queue.Count > 0
+   AND NOT Trig_Pulse.Q         // ★ 직전 트리거 펄스(0.1s) 진행 중엔 발동 보류.
+                                //   안 그러면 펄스폭 안에 들어온 다음 부품이 pop 되며 Trig_Position 만 덮어쓰고
+                                //   카메라는 안 찍히는 desync(=가까운 부품 트리거거리 부정확) 발생.
    AND (Queue.HeadValue + Trigger_Length <= Real_Position) THEN
     bDistReached := TRUE;
-    Trig_Position := Real_Position;   // 트리거 순간 엔코더 래치(Target X 보정 기준)
+    Trig_Position := Real_Position;   // 실제 발동 순간 엔코더 래치 — 카메라 실촬영 위치와 1:1 일치
     Queue.Pop();
 END_IF
 
