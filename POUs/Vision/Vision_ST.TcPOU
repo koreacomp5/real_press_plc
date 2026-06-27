@@ -20,6 +20,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[All_Initial_Trig(CLK := GVL_Motion_Step.All_Initial);
+
 Fiber_Sensor_Trig(CLK := GVL_System.Fiber_Sensor);
 Vision_OK_Trig(CLK := GVL_Vision.Vision_OK);
 Fiber_Sensor_Valid_TON(IN := GVL_System.Fiber_Sensor, PT := T#100MS);
