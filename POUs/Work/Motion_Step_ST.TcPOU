@@ -117,12 +117,7 @@ IF GVL_System.Auto_Mode THEN
     IF GVL_Motion_Step.No = 25 THEN
         GVL_Motion_Step.Axis02_Stop := TRUE;
         IF GVL_Axis02.Work_End_Position THEN
-            IF NOT GVL_Vision.Vision_OK THEN
-                GVL_Motion_Step.No := 30;
-            END_IF
-            IF GVL_Vision.Vision_OK THEN
-                GVL_Motion_Step.No := 35;
-            END_IF
+            GVL_Motion_Step.No := 30;
         END_IF
     END_IF
 
@@ -130,14 +125,6 @@ IF GVL_System.Auto_Mode THEN
     IF GVL_Motion_Step.No = 30 THEN
         GVL_Motion_Step.All_Axis_Wait_Pos_Moving := TRUE;
         IF GVL_System.ALL_Wait_Position THEN
-            GVL_Motion_Step.No := 40;
-        END_IF
-    END_IF
-
-    //Step 35: Work Comp Target Pos Moving
-    IF GVL_Motion_Step.No = 35 THEN
-        GVL_Motion_Step.Work_Comp_Target_Pos_Moving := TRUE;
-        IF GVL_Axis02.Wait_Position AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
             GVL_Motion_Step.No := 40;
         END_IF
     END_IF
