@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Initial" Id="{6fb955ac-b607-42dc-a361-3602f789715b}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Initial
 VAR
@@ -16,22 +16,18 @@ END_VAR
 	GVL_Vision.Vision_OK					:=	0;
 	GVL_Vision.Data_Read_OK					:=	0;
 	GVL_Vision.Data_Read_NG					:=	0;
-	GVL_Vision.Get_Frame_Time				:=	0;
-	GVL_Vision.Target_X_Real_Position_Data	:=	0;	
-	GVL_Vision.Press_Speed					:=	0;
-	GVL_Vision.Travel_Distance				:=	0;
-	GVL_Vision.Moving_Time					:=	0;
+	GVL_Vision.Target_X_Real_Position_Data	:=	0;
 	GVL_Axis02.Work_Offset					:=	0;
 	GVL_Main_Step.NO 						:=	0;
 	GVL_Motion_Step.No						:=	0;
 	GVL_Vision.Data_Check					:=	0;
 	GVL_Vision.Data_Copy_Comp				:= FALSE;
 	GVL_Vision.Vision_OK					:= FALSE;
-	GVL_Axis04.M_Cleaning_Move := FALSE;	
+	GVL_Axis04.M_Cleaning_Move := FALSE;
 	GVL_Vision.Cam_Trigger := FALSE;
 	GVL_Axis04.M_Mastering_Pos_Move := FALSE;
-	
-	
+
+
 END_IF ]]></ST>
     </Implementation>
     <LineIds Name="Initial">

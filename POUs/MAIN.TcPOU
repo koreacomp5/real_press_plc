@@ -8,7 +8,6 @@ END_VAR
     <Implementation>
       <ST><![CDATA[//Axis01: R
 Axis01_Status();
-//Axis01_Interlock_ST();
 Axis01_Command();
 Axis01_Manual();
 Axis01_Auto();
@@ -16,7 +15,6 @@ Axis01_Alarm();
 
 //Axis02: X
 Axis02_Status();
-//Axis02_Interlock_ST();
 Axis02_Command();
 Axis02_Manual();
 Axis02_Auto();
@@ -24,7 +22,6 @@ Axis02_Alarm();
 
 //Axis03: Y
 Axis03_Status();
-//Axis03_Interlock_ST();
 Axis03_Command();
 Axis03_Manual();
 Axis03_Auto();
@@ -50,16 +47,11 @@ Alarm_Warring();
 HMI();
 HOME_MOVE();
 Initial();
-//Moving_Speed();
 System();
-//Login_Timer();
-
 
 //Vision
-
 Vision_ST();
 Move_Command();
-
 
 //Work
 Motion_Step_ST();
@@ -70,10 +62,17 @@ GOST();
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="17" Count="34" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="20" Count="6" />
+      <LineId Id="28" Count="6" />
+      <LineId Id="36" Count="15" />
       <LineId Id="77" Count="0" />
       <LineId Id="76" Count="0" />
-      <LineId Id="54" Count="20" />
+      <LineId Id="54" Count="6" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="68" Count="1" />
+      <LineId Id="71" Count="3" />
       <LineId Id="81" Count="1" />
       <LineId Id="87" Count="0" />
       <LineId Id="92" Count="0" />

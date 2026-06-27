@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <GVL Name="GVL_Vision" Id="{aacb4183-bf71-4ea7-aa39-f263d21233e2}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
@@ -11,9 +11,7 @@ VAR_GLOBAL
 	Axis02_Data_Apply_Comp					:	BOOL	;
 	Axis03_Data_Apply_Comp					:	BOOL	;
 	Cam_Trigger					AT%Q*		:	BOOL	;
-	Get_Frame								:	BOOL	;
 	Vision_OK								:	BOOL	;
-	Run										:	BOOL	;
 	Vision_Light_ON				AT%Q*		:	BOOL 	;
 	Data_Copy_Comp							:	BOOL	;
 	Data_Empty								:	BOOL	;
@@ -22,15 +20,7 @@ VAR_GLOBAL
 	Data_Read_X								:	LREAL	;
 	Data_Read_Y								:	LREAL	;
 	Data_Read_R								:	LREAL	;
-	Press_Speed								:	LREAL	;
-	Travel_Distance							:	LREAL	;
-	Target_Distance							:	LREAL	;
 	Target_X_Real_Position_Data				:	LREAL	;
-	Moving_Time								:	LREAL	;
-	FrameCount								:	LREAL	;
-	TotalSpeed								:	LREAL	;
-	Average_Speed							:	LREAL	;
-	Get_Frame_Time							:	LREAL	;
 	ON_Delay_Time							:	LREAL	;
 	Start_Pos_Data							:	LREAL	;
 	Sensor_Trig_Pos							:	LREAL	;	// fiber 센서 감지 시점 엔코더 위치 (카메라 트리거 기준점)

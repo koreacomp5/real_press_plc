@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Vision_ST" Id="{eed554c4-fc1a-4baf-9f60-2c5a21e38ff5}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Vision_ST
@@ -7,11 +7,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// ===== 캠트리거 파이프라인 (파이버 센서 → 카메라 트리거, 연속 리얼타임) =====
-// 큐/디바운스/거리트리거/펄스정형/flush/위치점프·만재 안전장치는 FB_CamTrigger 내부에 캡슐화.
-// Reset := 시스템초기화(GVL_System.All_Initial)에서만 큐 비움. 사이클말에는 비우지 않아
-//          파이프라인(센서→트리거)이 프레스 사이클 경계를 넘어 유지됨(연속/버스트 처리).
-//          모드이탈·역방향·엔코더점프 flush 는 FB 내부에서 처리.
+      <ST><![CDATA[
+// ===== 캠트리거 파이프라인 (파이버 센서 → 카메라 트리거, 연속 리얼타임) =====
 CamTrigger(
     Auto_Mode      := GVL_System.Auto_Mode,
     Fiber_Sensor   := GVL_System.Fiber_Sensor,
@@ -20,33 +17,21 @@ CamTrigger(
     Trigger_Length := GVL_Vision.Cam_Trigger_Length,
     Reset          := GVL_System.All_Initial);
 
-GVL_Vision.Cam_Trig_Position := CamTrigger.Trig_Position;   // Target X 보정 기준(트리거 순간 엔코더)
-
 // 오토모드 캠트리거만 구동 (마스터링은 Mastering.TcPOU 에서 별도 구동, 수동캠트리거 미사용)
-// 모드 배타 가드 — Vision_ST(Auto)·Mastering(Manual)이 같은 출력을 안 다툼.
-IF GVL_System.Auto_Mode THEN
-    GVL_Vision.Cam_Trigger := CamTrigger.Trigger;
-END_IF
+IF GVL_System.Auto_Mode THEN GVL_Vision.Cam_Trigger := CamTrigger.Trigger; END_IF
 
-// ===== 속도/프레임 초기화 =====
-IF GVL_Motion_Step.Axis02_Stop OR GVL_System.All_Initial THEN
-    GVL_Vision.Average_Speed := 0;
-    GVL_Vision.TotalSpeed := 0;
-    GVL_Vision.FrameCount := 0;
-    GVL_Vision.Get_Frame := 0;
-END_IF
+GVL_Vision.Cam_Trig_Position := CamTrigger.Trig_Position;   // Target X 보정 기준(트리거 순간 엔코더)
 
 // ===== Vision Light ON =====
 GVL_Vision.Vision_Light_ON := GVL_System.Auto_Mode OR GVL_Vision.Vision_Light_ON;
 
-// NOTE: 비전데이터 카피 시퀀스(Vision_OK→Data_Copy_Comp), Target X 계산, 데이터/버퍼 초기화는
-//       Motion_Step_ST 로 이전되어 프레스 시퀀스와 한 상태머신으로 통합됨.
-//       ORDER-CRITICAL: MAIN 에서 Vision_ST 가 Motion_Step_ST 보다 먼저 호출되어야 하며,
-//       그래야 Cam_Trig_Position 이 같은 스캔에 Motion 의 Target X 계산으로 전달된다.
 ]]></ST>
     </Implementation>
     <LineIds Name="Vision_ST">
+      <LineId Id="2014" Count="0" />
       <LineId Id="2009" Count="0" />
+      <LineId Id="8" Count="14" />
+      <LineId Id="27" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>
