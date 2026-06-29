@@ -10,7 +10,7 @@ END_VAR
 IF GVL_System.Manual_Mode THEN 
 	GVL_Axis04.Work_End_Speed := 30 ;
 ELSE 
-	GVL_Axis04.Work_End_Speed:= (15 * gvl_Encoder.Real_Velocity)/ GVL_Axis02.Sync_Data;
+	GVL_Axis04.Work_End_Speed:= 75;
 END_IF
 ]]></ST>
     </Implementation>
