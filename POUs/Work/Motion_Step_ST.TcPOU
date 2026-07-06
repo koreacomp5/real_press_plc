@@ -19,6 +19,11 @@ VAR
     Auto_Resume_Trig   : R_TRIG;             // 오토 재요청 상승엣지(정지 해제·복구)
     X_Coupled          : BOOL;               // X(Axis02) 기어 커플 상태 추적 — Press_Start에서 래치, Work_End_Position에서 해제
     Manual_Nudge       : BOOL;               // 림보(Auto·Manual 둘다 OFF) 탈출용 수동요청 넛지 플래그
+    Z_Torque_Timer      : TON;               // 압입 토크 임계 도달 지속 확인(하강 가속 스파이크 오검출 방지)
+    Z_Torque_Reach_Time : TIME := T#100MS;   // 토크 임계 도달 확정 지속시간 — 장비 튜닝
+    Z_Stop_Timer        : TON;               // 토크완료 후 Z MC_Stop 정지 확인 디바운스
+    Z_Stop_Conf_Vel     : LREAL := 1.0;      // 정지 판정 속도(이 미만이면 정지 완료) — 장비 튜닝
+    Z_Stop_Conf_Time    : TIME := T#50MS;    // 정지 확정 지속시간
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -124,11 +129,26 @@ IF GVL_System.Auto_Mode THEN
                AND GVL_Axis03.Target_Position AND GVL_Axis01.Target_Position THEN
                 GVL_Motion_Step.Z_Press_Start := TRUE;
             END_IF
+
+            // ===== 토크 압입 완료 판정 =====
+            // 실제토크(GVL_Axis04.Torque_Actual, PDO)가 임계값(Press_Torque_Reach_Data) 이상으로
+            // Z_Torque_Reach_Time 지속되면(가속 스파이크 오검출 방지) 목표 위치 미도달이어도 토크한계 도달로 완료.
+            Z_Torque_Timer(IN := GVL_Motion_Step.Z_Press_Start
+                                 AND ABS(GVL_Axis04.Torque_Actual) >= GVL_Axis04.Press_Torque_Reach_Data
+                                 AND NOT GVL_Axis04.Work_End_Position,
+                           PT := Z_Torque_Reach_Time);
+
             IF GVL_Axis04.Work_End_Position THEN
-                // 무손실 압입 ID 보고: 현재 count 슬롯에 ID 기록 → count 증가
+                // 정상(위치도달) 완료 — 기존 경로. 무손실 압입 ID 보고: 현재 count 슬롯에 ID 기록 → count 증가
                 GVL_Vision.Pressed_ID_Buf[GVL_Vision.Press_Count MOD 256] := Active_ID;
                 GVL_Vision.Press_Count := GVL_Vision.Press_Count + 1;   // vision은 Press_Count 증가분만큼 Buf 읽음
                 GVL_Motion_Step.No := 20;
+            ELSIF Z_Torque_Timer.Q THEN
+                // 토크한계 도달 완료 — 위치 미도달(눌러박힘)이라 press MoveAbsolute 를 MC_Stop 으로 끊어야 함(No=15).
+                // 컨베이어/부품 눌러박힘으로 Work_End_Position 이 안 떠 No=10 에 머물며 계속 누르던 hang 방지.
+                GVL_Vision.Pressed_ID_Buf[GVL_Vision.Press_Count MOD 256] := Active_ID;
+                GVL_Vision.Press_Count := GVL_Vision.Press_Count + 1;
+                GVL_Motion_Step.No := 15;
             ELSIF GVL_Vision.Target_X_Real_Position_Data < 0
                   AND NOT GVL_Motion_Step.Z_Press_Start THEN
                 // 미압입(R/Y 지연) abort → skip 보고 (reason 2)
@@ -137,6 +157,17 @@ IF GVL_System.Auto_Mode THEN
                 GVL_Vision.Skip_Count := GVL_Vision.Skip_Count + 1;
                 Skip_Event := TRUE;   // 프레스 실패 → 부저 펄스 트리거
                 GVL_Motion_Step.No := 25;   // Z 미진입, 부품이 0(센서 닿기 전 한계) 지나침 → No=25 MC_Stop 복귀
+            END_IF
+
+        15: // 토크 압입 완료 후 Z 강제정지(MC_Stop) → 정지 확인 → 복귀(No=20)
+            // press MoveAbsolute 는 Execute 를 떨궈도 안 멈추므로(계속 목표로 누름) Z MC_Stop(Axis04_Stop_01)로 확실히 끊는다.
+            // GVL_Main_Step.Press_Stop → Axis04_Status 의 MC_Stop Execute(전용 훅). 정지 확인 후 해제해야 다음 복귀 move 가능.
+            Z_Stop_Timer(IN := ABS(GVL_Axis04.Real_Velocity) < Z_Stop_Conf_Vel, PT := Z_Stop_Conf_Time);
+            IF Z_Stop_Timer.Q THEN
+                GVL_Main_Step.Press_Stop := FALSE;   // MC_Stop 해제 → No=20 Wait 복귀 move 실행 가능
+                GVL_Motion_Step.No := 20;
+            ELSE
+                GVL_Main_Step.Press_Stop := TRUE;    // Z MC_Stop 유지(press 정지)
             END_IF
 
         20: // Axis04 Wait Pos Moving
@@ -192,6 +223,13 @@ END_IF
 // 디커플 완료 시 X_Coupled 해제 → 코일초기화로 Axis02_Stop 자동 release → 수동 조그 가능.
 IF X_Coupled AND NOT GVL_System.Auto_Mode THEN
     GVL_Motion_Step.Axis02_Stop := TRUE;
+END_IF
+
+// ===== Z 정지훅(Press_Stop) 안전 해제 =====
+// 토크완료 정지(No=15)용 Z MC_Stop 훅. 오토 이탈·초기화 시 래치 잔류로 Z가 정지에 물려 수동조작·복구를
+// 방해하지 않도록 해제. (No=15 정상 진행 시엔 그 스텝에서 정지확인 후 스스로 해제)
+IF NOT GVL_System.Auto_Mode OR GVL_System.All_Initial THEN
+    GVL_Main_Step.Press_Stop := FALSE;
 END_IF
 
 // Vision 데이터 초기화 (캡처 직후 다음 결과 수신 준비) =====
