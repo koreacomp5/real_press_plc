@@ -105,7 +105,11 @@ VAR_GLOBAL PERSISTENT
 //Motor_Torque_Data
 	Torque_UP_Limit				AT%Q*	:	UINT	;
 	Torque_Down_Limit			AT%Q*	:	UINT	;
-	Press_Torque_Reach_Data				:	INT		:= 1000	;	// 압입 완료 판정 토크 임계값(HMI) — Torque_Actual 과 동일 단위
+	Press_Torque_Reach_Data				:	INT		:= 1500	;	// 압입 완료 판정 토크 임계값(HMI) — Torque_Actual 과 동일 단위
+	// 압입 완료/정지 판정 디바운스(HMI·대시보드에서 조절). 시간은 ms 정수(ADS 친화적) — Motion_Step_ST 에서 UDINT_TO_TIME.
+	Press_Torque_Reach_Time_Data		:	UDINT	:= 100	;	// 토크 임계 도달 확정 지속시간(ms) — Z_Torque_Reach_Time 대체
+	Press_Stop_Vel_Data					:	LREAL	:= 1.0	;	// 압입 후 Z 정지 판정 속도(이 미만이면 정지) — Z_Stop_Conf_Vel 대체
+	Press_Stop_Time_Data				:	UDINT	:= 50	;	// 정지 확정 지속시간(ms) — Z_Stop_Conf_Time 대체
 	Wait_Speed							: 	LREAL	;
 END_VAR
 
