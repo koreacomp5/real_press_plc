@@ -5,8 +5,9 @@
 VAR_GLOBAL
 //Motor_Status								
     Real_Position						:	LREAL	;		// 실제 위치					
-    Real_Velocity						:	LREAL	;		// 실제 속도					
-	Busy	   						 	:	BOOL	;		// 동작중			
+    Real_Velocity						:	LREAL	;		// 실제 속도
+	Torque_Actual			AT%I*		:	INT		;		// 실제 토크(드라이브 PDO 링크) — 압입 완료 판정 모니터링
+	Busy	   						 	:	BOOL	;		// 동작중
     Homed       					    :	BOOL	;		// 홈 완료 여부						
     Error								:	BOOL	;		// 에러 발생 여부						
     ErrorID								:	UDINT	;		// 에러 코드						
@@ -104,6 +105,11 @@ VAR_GLOBAL PERSISTENT
 //Motor_Torque_Data
 	Torque_UP_Limit				AT%Q*	:	UINT	;
 	Torque_Down_Limit			AT%Q*	:	UINT	;
+	Press_Torque_Reach_Data				:	INT		:= 1500	;	// 압입 완료 판정 토크 임계값(HMI) — Torque_Actual 과 동일 단위
+	// 압입 완료/정지 판정 디바운스(HMI·대시보드에서 조절). 시간은 ms 정수(ADS 친화적) — Motion_Step_ST 에서 UDINT_TO_TIME.
+	Press_Torque_Reach_Time_Data		:	UDINT	:= 100	;	// 토크 임계 도달 확정 지속시간(ms) — Z_Torque_Reach_Time 대체
+	Press_Stop_Vel_Data					:	LREAL	:= 1.0	;	// 압입 후 Z 정지 판정 속도(이 미만이면 정지) — Z_Stop_Conf_Vel 대체
+	Press_Stop_Time_Data				:	UDINT	:= 50	;	// 정지 확정 지속시간(ms) — Z_Stop_Conf_Time 대체
 	Wait_Speed							: 	LREAL	;
 END_VAR
 
