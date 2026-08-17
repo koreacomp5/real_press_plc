@@ -7,6 +7,8 @@ VAR
 	DATAPLS : R_TRIG;
 	Manual_TRIG : R_TRIG;
 	AUTO_TRIG : R_TRIG;
+	WaitMove_TON : TON;		// 대기위치 이동 워치독(도달 실패 시 플래그 강제 해제)
+	HomeMove_TON : TON;		// 원점 시퀀스 워치독(완료 실패 시 체인 플래그 강제 해제)
 END_VAR
 //원점 순서
 //1. Z축 잡고 
@@ -100,6 +102,38 @@ IF GVL_System.All_Initial AND NOT GVL_System.ALL_Motor_Homed THEN
 	GVL_SYSTEM.Axis03_Home_Move := FALSE;
 	GVL_SYSTEM.Axis04_Home_Move := FALSE;
 	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 대기위치 이동 워치독 ---
+// 해제 조건이 ALL_Wait_Position 뿐이라, 한 축이라도 대기위치 판정에 못 들어가면
+// All_Axis_Wait_Pos_Moving/Axis0X_Wait_Pos_Move 가 영구 잔류 → Manual 의
+// M_Wait_Pos_Move 가 계속 유지되는 데드락(jog 후 자동 복귀, 완료 불가)이 됐다.
+// 20초 내 도달 실패 또는 수동 모드 전환 시 대기이동 요청을 전부 강제 해제한다.
+WaitMove_TON(IN := GVL_System.All_Axis_Wait_Pos_Moving
+	OR GVL_System.Axis01_Wait_Pos_Move OR GVL_System.Axis02_Wait_Pos_Move
+	OR GVL_System.Axis03_Wait_Pos_Move OR GVL_System.Axis04_Wait_Pos_Move,
+	PT := T#20S);
+IF WaitMove_TON.Q OR Manual_TRIG.Q THEN
+	GVL_System.All_Axis_Wait_Pos_Moving := FALSE;
+	GVL_System.Axis01_Wait_Pos_Move := FALSE;
+	GVL_System.Axis02_Wait_Pos_Move := FALSE;
+	GVL_System.Axis03_Wait_Pos_Move := FALSE;
+	GVL_System.Axis04_Wait_Pos_Move := FALSE;
+	GVL_System.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 원점 시퀀스 워치독 ---
+// Axis0X_Home_Move 의 해제 조건이 "전축 원점 완료"뿐이라, 한 축이라도 원점 실패
+// (jog 가로채기·센서 불량 등)하면 체인 비트가 영구 잔류 → M_Home_ORG 를 계속
+// 붙잡아 재시도 불가/영구 미완료가 됐다. 120초 내 완료 실패 또는 오토 모드 전환
+// 시 원점 체인을 전부 강제 해제한다. (해제 후 원점 버튼으로 처음부터 재시작)
+HomeMove_TON(IN := GVL_System.ALL_Home_Move_Start, PT := T#120S);
+IF HomeMove_TON.Q OR AUTO_TRIG.Q THEN
+	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.Axis02_Home_Move := FALSE;
+	GVL_SYSTEM.Axis03_Home_Move := FALSE;
+	GVL_SYSTEM.Axis04_Home_Move := FALSE;
 	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
 END_IF]]></ST>
     </Implementation>
