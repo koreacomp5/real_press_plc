@@ -132,6 +132,11 @@ CASE step OF
 			M_Error(_ErrorID:=fbMC_MoveRelative.ErrorID,_ErrorStep:=step);
 			fbMC_MoveRelative.Execute:=FALSE;
 			step:=13; // warning -> error
+		ELSIF fbMC_MoveRelative.CommandAborted=TRUE THEN
+			// jog 등 외부 명령이 이동을 가로챔 — 리밋 도달 불가. CoE 원복 후 재시작 가능하게 종료
+			M_Error(_ErrorID:=16#FFFF0001,_ErrorStep:=step);
+			fbMC_MoveRelative.Execute:=FALSE;
+			step:=13; // warning -> error
 		ELSE
 			IF LimitSensor=TRUE OR ABS(AXIS.NcToPlc.PosDiff)>3 THEN
 				//MC_SetAcceptBlockedDriveSignal(Axis := AXIS, Enable := FALSE);
@@ -230,6 +235,11 @@ CASE step OF
 				fbTON(IN:=FALSE);
 				IF fbMC_Home.Error=TRUE THEN
 					M_Error(_ErrorID:=fbMC_Home.ErrorID,_ErrorStep:=step);
+					step:=13; // CoE 리밋 반응 원복 후 종료
+				ELSIF fbMC_Home.CommandAborted=TRUE THEN
+					// jog 등이 홈을 가로챔 — 성공으로 오인 금지, 미완료 에러 처리
+					M_Error(_ErrorID:=16#FFFF0002,_ErrorStep:=step);
+					step:=13; // CoE 리밋 반응 원복 후 종료
 				ELSE
 					step:=320;
 				END_IF
