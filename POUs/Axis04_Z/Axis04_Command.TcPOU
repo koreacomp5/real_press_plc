@@ -2480,7 +2480,7 @@ END_VAR]]></Declaration>
                           </o>
                           <o t="BoxTreeOperand">
                             <o n="Operand" t="Operand">
-                              <v n="Operand">"GVL_Axis04.Work_End_Speed"</v>
+                              <v n="Operand">"GVL_Axis04.Work_Speed"</v>
                               <v n="Type">"LREAL"</v>
                               <v n="Comment">""</v>
                               <v n="SymbolComment">""</v>

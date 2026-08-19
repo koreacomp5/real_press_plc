@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="HOME_MOVE" Id="{0b7a5dc2-9791-47fe-9b1f-c3a35a108549}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM HOME_MOVE
 VAR
@@ -7,6 +7,8 @@ VAR
 	DATAPLS : R_TRIG;
 	Manual_TRIG : R_TRIG;
 	AUTO_TRIG : R_TRIG;
+	WaitMove_TON : TON;		// 대기위치 이동 워치독(도달 실패 시 플래그 강제 해제)
+	HomeMove_TON : TON;		// 원점 시퀀스 워치독(완료 실패 시 체인 플래그 강제 해제)
 END_VAR
 //원점 순서
 //1. Z축 잡고 
@@ -69,13 +71,7 @@ IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
 	END_IF
 	
 		
-	IF GVL_System.All_Initial AND NOT GVL_System.ALL_Motor_Homed THEN
-		GVL_SYSTEM.Axis02_Home_Move := FALSE;
-		GVL_SYSTEM.Axis03_Home_Move := FALSE;
-		GVL_SYSTEM.Axis04_Home_Move := FALSE;
-		GVL_SYSTEM.Axis01_Home_Move := FALSE;
-		GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
-	END_IF
+
 	IF	(GVL_System.ALL_Motor_Homed = TRUE) AND (GVL_Axis01.Home_OK = TRUE)  THEN
 		//모든 측 원점 확인 후 리셋 및 wait 포지션 이동
 		
@@ -100,7 +96,46 @@ IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
 	END_IF
 
 END_IF
-]]></ST>
+
+IF GVL_System.All_Initial AND NOT GVL_System.ALL_Motor_Homed THEN
+	GVL_SYSTEM.Axis02_Home_Move := FALSE;
+	GVL_SYSTEM.Axis03_Home_Move := FALSE;
+	GVL_SYSTEM.Axis04_Home_Move := FALSE;
+	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 대기위치 이동 워치독 ---
+// 해제 조건이 ALL_Wait_Position 뿐이라, 한 축이라도 대기위치 판정에 못 들어가면
+// All_Axis_Wait_Pos_Moving/Axis0X_Wait_Pos_Move 가 영구 잔류 → Manual 의
+// M_Wait_Pos_Move 가 계속 유지되는 데드락(jog 후 자동 복귀, 완료 불가)이 됐다.
+// 20초 내 도달 실패 또는 수동 모드 전환 시 대기이동 요청을 전부 강제 해제한다.
+WaitMove_TON(IN := GVL_System.All_Axis_Wait_Pos_Moving
+	OR GVL_System.Axis01_Wait_Pos_Move OR GVL_System.Axis02_Wait_Pos_Move
+	OR GVL_System.Axis03_Wait_Pos_Move OR GVL_System.Axis04_Wait_Pos_Move,
+	PT := T#20S);
+IF WaitMove_TON.Q OR Manual_TRIG.Q THEN
+	GVL_System.All_Axis_Wait_Pos_Moving := FALSE;
+	GVL_System.Axis01_Wait_Pos_Move := FALSE;
+	GVL_System.Axis02_Wait_Pos_Move := FALSE;
+	GVL_System.Axis03_Wait_Pos_Move := FALSE;
+	GVL_System.Axis04_Wait_Pos_Move := FALSE;
+	GVL_System.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 원점 시퀀스 워치독 ---
+// Axis0X_Home_Move 의 해제 조건이 "전축 원점 완료"뿐이라, 한 축이라도 원점 실패
+// (jog 가로채기·센서 불량 등)하면 체인 비트가 영구 잔류 → M_Home_ORG 를 계속
+// 붙잡아 재시도 불가/영구 미완료가 됐다. 120초 내 완료 실패 또는 오토 모드 전환
+// 시 원점 체인을 전부 강제 해제한다. (해제 후 원점 버튼으로 처음부터 재시작)
+HomeMove_TON(IN := GVL_System.ALL_Home_Move_Start, PT := T#120S);
+IF HomeMove_TON.Q OR AUTO_TRIG.Q THEN
+	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.Axis02_Home_Move := FALSE;
+	GVL_SYSTEM.Axis03_Home_Move := FALSE;
+	GVL_SYSTEM.Axis04_Home_Move := FALSE;
+	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="HOME_MOVE">
       <LineId Id="285" Count="0" />
@@ -151,10 +186,6 @@ END_IF
       <LineId Id="249" Count="0" />
       <LineId Id="161" Count="0" />
       <LineId Id="157" Count="0" />
-      <LineId Id="132" Count="0" />
-      <LineId Id="335" Count="2" />
-      <LineId Id="333" Count="0" />
-      <LineId Id="338" Count="0" />
       <LineId Id="334" Count="0" />
       <LineId Id="133" Count="1" />
       <LineId Id="154" Count="0" />
@@ -170,6 +201,7 @@ END_IF
       <LineId Id="186" Count="0" />
       <LineId Id="66" Count="0" />
       <LineId Id="26" Count="0" />
+      <LineId Id="352" Count="6" />
       <LineId Id="234" Count="0" />
     </LineIds>
   </POU>

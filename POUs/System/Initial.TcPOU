@@ -26,6 +26,17 @@ END_VAR
 	GVL_Vision.Cam_Trigger := FALSE;
 	GVL_Axis04.M_Mastering_Pos_Move := FALSE;
 
+	// 원점 이동중/대기위치 이동중 상태 강제 해제 — 초기화 버튼으로 탈출 가능하게
+	GVL_System.ALL_Home_Move_Start		:= FALSE;
+	GVL_System.Axis01_Home_Move			:= FALSE;
+	GVL_System.Axis02_Home_Move			:= FALSE;
+	GVL_System.Axis03_Home_Move			:= FALSE;
+	GVL_System.Axis04_Home_Move			:= FALSE;
+	GVL_System.All_Axis_Wait_Pos_Moving	:= FALSE;
+	GVL_System.Axis01_Wait_Pos_Move		:= FALSE;
+	GVL_System.Axis02_Wait_Pos_Move		:= FALSE;
+	GVL_System.Axis03_Wait_Pos_Move		:= FALSE;
+	GVL_System.Axis04_Wait_Pos_Move		:= FALSE;
 
 END_IF ]]></ST>
     </Implementation>

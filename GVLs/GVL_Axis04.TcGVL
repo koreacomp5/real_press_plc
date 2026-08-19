@@ -80,7 +80,6 @@ M_Home_ORG: BOOL;
 
 	Power_ON_Delay: BOOL;
 	Test_Power_ON: BOOL;
-	Work_End_Speed: LREAL;
 	
 	M_Cleaning_Move: BOOL;
 	Cleaning_Move_Position: BOOL;
