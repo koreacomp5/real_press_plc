@@ -28,10 +28,7 @@ VAR_GLOBAL
 
 //Vision_Status
 	Vision_Alarm_Code						:	INT		;
-	Axis01_Calibration_Position_Data		:	LREAL	;
-	Axis02_Calibration_Position_Data		:	LREAL	;
-	Axis03_Calibration_Position_Data		:	LREAL	;
-	Axis04_Calibration_Position_Data		:	LREAL	;
+
 
 	Axis01_Calibration_Position_Data_Old	:	LREAL	;
 	Axis02_Calibration_Position_Data_Old	:	LREAL	;
@@ -69,6 +66,13 @@ VAR_GLOBAL PERSISTENT
 	Axis04_Mastering_Position_Data: LREAL := -20;
 	Press_Count : UDINT;   // 실제 압입(Z 압입완료) 누적 횟수(전원 유지) — Pressed_ID_Buf 읽기 기준
 	Skip_Count  : UDINT;   // 건너뛴 누적 횟수(전원 유지) — Skipped_ID/Reason_Buf 읽기 기준
+END_VAR
+
+VAR_GLOBAL CONSTANT
+	Axis01_Calibration_Position_Data		:	LREAL := -5	;
+	Axis02_Calibration_Position_Data		:	LREAL := 80	;
+	Axis03_Calibration_Position_Data		:	LREAL := -10	;
+	Axis04_Calibration_Position_Data		:	LREAL := -20	;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

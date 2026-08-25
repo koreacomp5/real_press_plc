@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="Initial" Id="{6fb955ac-b607-42dc-a361-3602f789715b}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Initial
@@ -25,6 +25,7 @@ END_VAR
 	GVL_Axis04.M_Cleaning_Move := FALSE;
 	GVL_Vision.Cam_Trigger := FALSE;
 	GVL_Axis04.M_Mastering_Pos_Move := FALSE;
+	
 
 	// 원점 이동중/대기위치 이동중 상태 강제 해제 — 초기화 버튼으로 탈출 가능하게
 	GVL_System.ALL_Home_Move_Start		:= FALSE;
@@ -37,6 +38,7 @@ END_VAR
 	GVL_System.Axis02_Wait_Pos_Move		:= FALSE;
 	GVL_System.Axis03_Wait_Pos_Move		:= FALSE;
 	GVL_System.Axis04_Wait_Pos_Move		:= FALSE;
+	GVL_Calibration.Calibration_Pos_Moving := FALSE;
 
 END_IF ]]></ST>
     </Implementation>
@@ -47,6 +49,7 @@ END_IF ]]></ST>
       <LineId Id="28" Count="0" />
       <LineId Id="11" Count="6" />
       <LineId Id="19" Count="2" />
+      <LineId Id="68" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="24" Count="0" />
       <LineId Id="37" Count="0" />
@@ -55,6 +58,10 @@ END_IF ]]></ST>
       <LineId Id="62" Count="2" />
       <LineId Id="53" Count="0" />
       <LineId Id="5" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
