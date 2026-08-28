@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
   <POU Name="HOME_MOVE" Id="{0b7a5dc2-9791-47fe-9b1f-c3a35a108549}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM HOME_MOVE
 VAR
@@ -7,27 +7,27 @@ VAR
 	DATAPLS : R_TRIG;
 	Manual_TRIG : R_TRIG;
 	AUTO_TRIG : R_TRIG;
+	WaitMove_TON : TON;		// 대기위치 이동 워치독(도달 실패 시 플래그 강제 해제)
+	HomeMove_TON : TON;		// 원점 시퀀스 워치독(완료 실패 시 체인 플래그 강제 해제)
 END_VAR
 //원점 순서
-//1.가이드 잡고
-//2.가이드 벌리고
-//3. Z축 잡고 
-//4. Z축 올리고
-//5.Y축 잡고
-//6.Y축 WAIT 포지션
-//7. X 축 잡고
-//8. 모두 원점 잡으면 올 WAIT 포지션]]></Declaration>
+//1. Z축 잡고 
+//2. Z축 올리고
+//3.Y축 잡고
+//4.Y축 WAIT 포지션
+//5. X 축 잡고
+//6. 모두 원점 잡으면 올 WAIT 포지션]]></Declaration>
     <Implementation>
       <ST><![CDATA[Manual_TRIG(CLK := GVL_System.Manual_Mode);
 AUTO_TRIG(CLK := GVL_System.AUTO_Mode);
-IF AUTO_TRIG.Q THEN
+IF (GVL_SYSTEM.ALL_Home_Move_PB OR AUTO_TRIG.Q) AND GVL_System.ALL_Motor_Homed AND NOT GVL_System.ALL_Wait_Position THEN
 	GVL_System.All_Axis_Wait_Pos_Moving :=TRUE;
 	GVL_Axis04.M_Cleaning_Move := FALSE;
 END_IF
 IF GVL_System.ALL_Wait_Position THEN
 	GVL_System.All_Axis_Wait_Pos_Moving :=FALSE;
 END_IF
-IF Manual_TRIG.Q THEN
+IF Manual_TRIG.Q AND GVL_System.ALL_Motor_Homed THEN
 	GVL_Axis04.M_Cleaning_Move := TRUE;
 	
 END_IF
@@ -36,7 +36,7 @@ IF GVL_Axis04.Cleaning_Move_Position THEN
 	GVL_Axis04.M_Cleaning_Move := FALSE;
 END_IF
 
-IF	(GVL_AxIS02.Wait_Position = TRUE) AND	(GVL_AxIS03.Wait_Position = TRUE) AND	(GVL_AxIS04.Wait_Position = TRUE) AND (GVL_AxIS05.Wait_Position = TRUE) THEN
+IF	(GVL_AxIS02.Wait_Position = TRUE) AND	(GVL_AxIS03.Wait_Position = TRUE) AND	(GVL_AxIS04.Wait_Position = TRUE) AND (GVL_AxIS01.Wait_Position = TRUE) THEN
 	
 		GVL_System.ALL_Wait_Position := TRUE;
 	
@@ -49,9 +49,7 @@ END_IF
 IF GVL_SYSTEM.ALL_Home_Move_PB = TRUE AND GVL_System.Manual_Mode = TRUE  AND (GVL_System.ALL_Motor_Homed = FALSE) THEN
 	
 	GVL_SYSTEM.ALL_Home_Move_Start := TRUE;		// 원점 시작
-	
-	GVL_Axis01.Wait_Position_Data := 38;
-	
+		
 END_IF
 
 IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
@@ -65,33 +63,27 @@ IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
 	END_IF
 	IF (GVL_Axis02.Home_OK = TRUE) THEN
 		
-		GVL_System.Axis01_Home_Move := TRUE;
 		GVL_System.Axis03_Home_Move := TRUE;	//   X축 원점 확인 후 가이드 Y,R 축 모두 원점 시작 GVL_System.Axis04_Home_Move
 		
 	END_IF
-	IF (GVL_Axis01.Home_OK = TRUE) THEN
-		GVL_System.Axis01_Wait_Pos_Move  := TRUE ;
-	END_IF
 	IF (GVL_Axis03.Home_OK = TRUE) THEN
-		GVL_System.Axis05_Home_Move := TRUE;
+		GVL_System.Axis01_Home_Move := TRUE;
 	END_IF
 	
 		
-	
-	IF	(GVL_System.ALL_Motor_Homed = TRUE) AND (GVL_Axis01.Wait_Position = TRUE)  THEN
+
+	IF	(GVL_System.ALL_Motor_Homed = TRUE) AND (GVL_Axis01.Home_OK = TRUE)  THEN
 		//모든 측 원점 확인 후 리셋 및 wait 포지션 이동
 		
-		GVL_SYSTEM.Axis01_Home_Move := FALSE;
 		GVL_SYSTEM.Axis02_Home_Move := FALSE;
 		GVL_SYSTEM.Axis03_Home_Move := FALSE;
 		GVL_SYSTEM.Axis04_Home_Move := FALSE;
-		GVL_SYSTEM.Axis05_Home_Move := FALSE;
-		GVL_System.Axis01_Wait_Pos_Move := FALSE;
+		GVL_SYSTEM.Axis01_Home_Move := FALSE;
 		
 		GVL_SYSTEM.Axis02_Wait_Pos_Move := TRUE;
 		GVL_SYSTEM.Axis03_Wait_Pos_Move := TRUE;
 		GVL_SYSTEM.Axis04_Wait_Pos_Move := TRUE;
-		GVL_SYSTEM.Axis05_Wait_Pos_Move := TRUE;
+		GVL_SYSTEM.Axis01_Wait_Pos_Move := TRUE;
 	
 	END_IF
 	IF	(GVL_System.ALL_Wait_Position = TRUE) THEN
@@ -100,11 +92,50 @@ IF	(GVL_System.ALL_Home_Move_Start = TRUE) THEN
 		GVL_SYSTEM.Axis02_Wait_Pos_Move := FALSE;
 		GVL_SYSTEM.Axis03_Wait_Pos_Move := FALSE;
 		GVL_SYSTEM.Axis04_Wait_Pos_Move := FALSE;
-		GVL_SYSTEM.Axis05_Wait_Pos_Move := FALSE;
+		GVL_SYSTEM.Axis01_Wait_Pos_Move := FALSE;
 	END_IF
 
 END_IF
-]]></ST>
+
+IF GVL_System.All_Initial AND NOT GVL_System.ALL_Motor_Homed THEN
+	GVL_SYSTEM.Axis02_Home_Move := FALSE;
+	GVL_SYSTEM.Axis03_Home_Move := FALSE;
+	GVL_SYSTEM.Axis04_Home_Move := FALSE;
+	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 대기위치 이동 워치독 ---
+// 해제 조건이 ALL_Wait_Position 뿐이라, 한 축이라도 대기위치 판정에 못 들어가면
+// All_Axis_Wait_Pos_Moving/Axis0X_Wait_Pos_Move 가 영구 잔류 → Manual 의
+// M_Wait_Pos_Move 가 계속 유지되는 데드락(jog 후 자동 복귀, 완료 불가)이 됐다.
+// 20초 내 도달 실패 또는 수동 모드 전환 시 대기이동 요청을 전부 강제 해제한다.
+WaitMove_TON(IN := GVL_System.All_Axis_Wait_Pos_Moving
+	OR GVL_System.Axis01_Wait_Pos_Move OR GVL_System.Axis02_Wait_Pos_Move
+	OR GVL_System.Axis03_Wait_Pos_Move OR GVL_System.Axis04_Wait_Pos_Move,
+	PT := T#20S);
+IF WaitMove_TON.Q OR Manual_TRIG.Q THEN
+	GVL_System.All_Axis_Wait_Pos_Moving := FALSE;
+	GVL_System.Axis01_Wait_Pos_Move := FALSE;
+	GVL_System.Axis02_Wait_Pos_Move := FALSE;
+	GVL_System.Axis03_Wait_Pos_Move := FALSE;
+	GVL_System.Axis04_Wait_Pos_Move := FALSE;
+	GVL_System.ALL_Home_Move_Start := FALSE;
+END_IF
+
+// --- 원점 시퀀스 워치독 ---
+// Axis0X_Home_Move 의 해제 조건이 "전축 원점 완료"뿐이라, 한 축이라도 원점 실패
+// (jog 가로채기·센서 불량 등)하면 체인 비트가 영구 잔류 → M_Home_ORG 를 계속
+// 붙잡아 재시도 불가/영구 미완료가 됐다. 120초 내 완료 실패 또는 오토 모드 전환
+// 시 원점 체인을 전부 강제 해제한다. (해제 후 원점 버튼으로 처음부터 재시작)
+HomeMove_TON(IN := GVL_System.ALL_Home_Move_Start, PT := T#120S);
+IF HomeMove_TON.Q OR AUTO_TRIG.Q THEN
+	GVL_SYSTEM.Axis01_Home_Move := FALSE;
+	GVL_SYSTEM.Axis02_Home_Move := FALSE;
+	GVL_SYSTEM.Axis03_Home_Move := FALSE;
+	GVL_SYSTEM.Axis04_Home_Move := FALSE;
+	GVL_SYSTEM.ALL_Home_Move_Start := FALSE;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="HOME_MOVE">
       <LineId Id="285" Count="0" />
@@ -135,8 +166,7 @@ END_IF
       <LineId Id="57" Count="0" />
       <LineId Id="130" Count="0" />
       <LineId Id="60" Count="0" />
-      <LineId Id="266" Count="1" />
-      <LineId Id="131" Count="0" />
+      <LineId Id="266" Count="0" />
       <LineId Id="58" Count="1" />
       <LineId Id="5" Count="0" />
       <LineId Id="129" Count="0" />
@@ -148,20 +178,18 @@ END_IF
       <LineId Id="128" Count="0" />
       <LineId Id="44" Count="1" />
       <LineId Id="125" Count="0" />
-      <LineId Id="46" Count="0" />
       <LineId Id="217" Count="0" />
       <LineId Id="126" Count="0" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="218" Count="2" />
+      <LineId Id="220" Count="0" />
       <LineId Id="250" Count="0" />
       <LineId Id="252" Count="0" />
       <LineId Id="249" Count="0" />
       <LineId Id="161" Count="0" />
       <LineId Id="157" Count="0" />
-      <LineId Id="132" Count="2" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="133" Count="1" />
       <LineId Id="154" Count="0" />
-      <LineId Id="137" Count="4" />
-      <LineId Id="143" Count="0" />
+      <LineId Id="138" Count="3" />
       <LineId Id="204" Count="0" />
       <LineId Id="148" Count="4" />
       <LineId Id="135" Count="0" />
@@ -169,9 +197,11 @@ END_IF
       <LineId Id="192" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="188" Count="2" />
-      <LineId Id="185" Count="1" />
+      <LineId Id="319" Count="0" />
+      <LineId Id="186" Count="0" />
       <LineId Id="66" Count="0" />
       <LineId Id="26" Count="0" />
+      <LineId Id="352" Count="6" />
       <LineId Id="234" Count="0" />
     </LineIds>
   </POU>

@@ -11,18 +11,38 @@ IF GVL_HMI.NowScreen_NO = 1 THEN
 	GVL_HMI.ChangeScreen_NO := 2 ;
 END_IF
 // 가이드 축
-IF NOT GVL_HMI.AXIS01_LAMP AND NOT GVL_HMI.AXIS02_LAMP AND NOT GVL_HMI.AXIS03_LAMP AND NOT GVL_HMI.AXIS04_LAMP AND NOT GVL_HMI.AXIS05_LAMP THEN
+IF NOT GVL_HMI.AXIS01_LAMP AND NOT GVL_HMI.AXIS02_LAMP AND NOT GVL_HMI.AXIS03_LAMP AND NOT GVL_HMI.AXIS04_LAMP THEN
 	GVL_HMI.AXIS01_LAMP := 1;
 	GVL_HMI.AXIS01 := 1;
 END_IF	
 
+IF GVL_System.Alarm_Reset AND GVL_HMI.NowScreen_NO = 7 THEN
 
+		GVL_HMI.ChangeScreen_NO := 2;
+	
+	
+END_IF
+
+IF GVL_System.Alarm_Reset AND  GVL_HMI.NowScreen_NO = 6  THEN
+
+		GVL_HMI.ChangeScreen_NO := 2;
+	
+	
+END_IF
+
+IF GVL_System.Alarm_Reset AND  GVL_HMI.NowScreen_NO = 5 THEN
+
+		GVL_HMI.ChangeScreen_NO := 2;
+	
+	
+END_IF
+(*
 IF GVL_HMI.NowScreen_NO = 3030 THEN
 	 GVL_HMI.AXIS01_LAMP := 1;
 	 GVL_HMI.AXIS02_LAMP := 0;
 	 GVL_HMI.AXIS03_LAMP := 0;
 	 GVL_HMI.AXIS04_LAMP := 0;
-	 GVL_HMI.AXIS05_LAMP := 0;
+
 	 
 END_IF
 
@@ -31,7 +51,7 @@ IF GVL_HMI.NowScreen_NO = 3031 THEN
 	 GVL_HMI.AXIS02_LAMP := 1;
 	 GVL_HMI.AXIS03_LAMP := 0;
 	 GVL_HMI.AXIS04_LAMP := 0;
-	 GVL_HMI.AXIS05_LAMP := 0;
+
 
 END_IF
 
@@ -40,7 +60,7 @@ IF GVL_HMI.NowScreen_NO = 3032 THEN
 	 GVL_HMI.AXIS02_LAMP := 0;
 	 GVL_HMI.AXIS03_LAMP := 1;
 	 GVL_HMI.AXIS04_LAMP := 0;
-	 GVL_HMI.AXIS05_LAMP := 0;
+
 
 	 
 END_IF
@@ -50,7 +70,7 @@ IF GVL_HMI.NowScreen_NO = 3033 THEN
 	 GVL_HMI.AXIS02_LAMP := 0;
 	 GVL_HMI.AXIS03_LAMP := 0;
 	 GVL_HMI.AXIS04_LAMP := 1;
-	 GVL_HMI.AXIS05_LAMP := 0;
+
 
 END_IF
 
@@ -59,11 +79,11 @@ IF GVL_HMI.NowScreen_NO = 3034 THEN
 	 GVL_HMI.AXIS02_LAMP := 0;
 	 GVL_HMI.AXIS03_LAMP := 0;
 	 GVL_HMI.AXIS04_LAMP := 0;
-	 GVL_HMI.AXIS05_LAMP := 1;
+
 
 END_IF
 
-
+*)
 
 
 
@@ -76,6 +96,7 @@ END_IF
       <LineId Id="255" Count="0" />
       <LineId Id="254" Count="0" />
       <LineId Id="530" Count="0" />
+      <LineId Id="534" Count="19" />
       <LineId Id="395" Count="0" />
       <LineId Id="394" Count="0" />
       <LineId Id="398" Count="3" />

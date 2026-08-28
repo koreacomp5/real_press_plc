@@ -10,15 +10,71 @@
     <GenerateTpy>false</GenerateTpy>
     <Name>Press</Name>
     <ProgramVersion>3.1.4024.0</ProgramVersion>
-    <Application>{224a2169-49fe-4cfb-ad92-fe9589662440}</Application>
-    <TypeSystem>{db9b6974-2458-4504-ba39-171530ced46a}</TypeSystem>
-    <Implicit_Task_Info>{daaf0bc8-9c08-4e37-b00d-1a9f327d0138}</Implicit_Task_Info>
-    <Implicit_KindOfTask>{6da90365-41d2-44cc-813f-e3e10f825c18}</Implicit_KindOfTask>
-    <Implicit_Jitter_Distribution>{0640642c-8080-4414-98b3-26c6c0025468}</Implicit_Jitter_Distribution>
-    <LibraryReferences>{3af7abaa-b54d-4522-81bd-9ca35b250916}</LibraryReferences>
-    <Released>false</Released>
+    <Application>{808ba9fe-1220-41f2-94a6-4a70eaa96972}</Application>
+    <TypeSystem>{55003861-c6e2-4247-ae5b-3d4af32ce702}</TypeSystem>
+    <Implicit_Task_Info>{d359e225-b31f-42a6-8bab-a66a8353c8fa}</Implicit_Task_Info>
+    <Implicit_KindOfTask>{4b3b594e-417d-46bf-ae3b-e8c65cffbae5}</Implicit_KindOfTask>
+    <Implicit_Jitter_Distribution>{d3f7660c-bcd3-4fd0-86bb-76684489f192}</Implicit_Jitter_Distribution>
+    <LibraryReferences>{df6e53ab-6573-413c-91d1-770d741cddf3}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DUTs\ST_VisionData.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Alarm.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Axis01.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Axis02.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Axis03.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Axis04.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Calibration.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Conv.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Encoder.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_HMI.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Main_Step.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Mastering.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Motion_Step.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_System.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Vision.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Vision_Step.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
@@ -28,28 +84,31 @@
     <Compile Include="POUs\Alarm\Alarm_Warring.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Alarm.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Auto.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Auto.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Command.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Interlock_ST.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Interlock_ST.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Manual.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Manual.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis01_Guide\Axis01_Status.TcPOU">
+    <Compile Include="POUs\Axis01_R\Axis01_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis02_X\Axis02_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis02_X\Axis02_Auto.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Axis02_X\Axis02_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis02_X\Axis02_Interlock_ST.TcPOU">
@@ -61,13 +120,13 @@
     <Compile Include="POUs\Axis02_X\Axis02_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis02_X\Axis02_Command.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Axis03_Y\Axis03_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis03_Y\Axis03_Auto.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Axis03_Y\Axis03_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis03_Y\Axis03_Interlock_ST.TcPOU">
@@ -79,13 +138,13 @@
     <Compile Include="POUs\Axis03_Y\Axis03_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis03_Y\Axis03_Command.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\Axis04_Z\Axis04_Alarm.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis04_Z\Axis04_Auto.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Axis04_Z\Axis04_Command.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Axis04_Z\Axis04_Manual.TcPOU">
@@ -97,85 +156,23 @@
     <Compile Include="POUs\Axis04_Z\Axis04_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis04_Z\Axis04_Command.TcPOU">
+    <Compile Include="POUs\Axis05_Encoder\Axis05_Status.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis04_Z\Axis04_Torque_Check.TcPOU">
+    <Compile Include="POUs\Conv.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Alarm.TcPOU">
+    <Compile Include="POUs\FB_HomeBeforeMoveAX8000.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Auto.TcPOU">
+    <Compile Include="POUs\FB_CamTrigger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Interlock_ST.TcPOU">
+    <Compile Include="POUs\FB_LRealRingQueue.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Manual.TcPOU">
+    <Compile Include="POUs\FB_VisionDataQueue.TcPOU">
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Command.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Axis05_R\Axis05_Status.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Axis06_Encoder\Axis06_Status.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\Axis06_Encoder\Target_Distance.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\FB\FB_HomeBeforeMoveAX8000.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Alarm.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Axis01.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Axis02.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Axis03.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Axis04.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Axis05.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Calibration.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Encoder.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_HMI.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Main_Step.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Motion_Step.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_System.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Test_Step.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Vision.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\GVLs\GVL_Vision_Step.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
@@ -195,7 +192,7 @@
     <Compile Include="POUs\System\System.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Vision\Auto_Offset.TcPOU">
+    <Compile Include="POUs\Vision\Mastering.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Vision\Move_Command.TcPOU">
@@ -204,78 +201,25 @@
     <Compile Include="POUs\Vision\Vision_ST.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Work\GOST.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Work\Motion_Step_ST.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis01_Guide\Axis01_Interlock.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Acceleration_Offset.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Interlock.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Speed_Offset.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis02_X\Axis02_Task_Offset.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis03_Y\Axis03_Interlock.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis04_Z\Axis04_Interlock.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Axis05_R\Axis05_Interlock.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\System\Moving_Speed.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\System\System_Time.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Vision\Vision.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Vision\Vision_Calibration.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Vision\Vision_Calibration_ST.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Work\Motion_Step.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\_regacy\Work\Vision_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DUTs" />
-    <Folder Include="POUs\Axis01_Guide" />
+    <Folder Include="GVLs" />
+    <Folder Include="POUs\Alarm" />
+    <Folder Include="POUs\Axis01_R" />
     <Folder Include="POUs\Axis02_X" />
     <Folder Include="POUs\Axis03_Y" />
     <Folder Include="POUs\Axis04_Z" />
-    <Folder Include="POUs\Axis05_R" />
-    <Folder Include="POUs\GVLs" />
-    <Folder Include="POUs\FB" />
-    <Folder Include="POUs\Alarm" />
-    <Folder Include="POUs\Axis06_Encoder" />
-    <Folder Include="POUs\_regacy" />
+    <Folder Include="POUs\Axis05_Encoder" />
+    <Folder Include="POUs\System" />
     <Folder Include="POUs\Vision" />
     <Folder Include="POUs\Work" />
-    <Folder Include="POUs\System" />
-    <Folder Include="POUs\_regacy\Axis02_X" />
-    <Folder Include="POUs\_regacy\Axis03_Y" />
-    <Folder Include="POUs\_regacy\Axis04_Z" />
-    <Folder Include="POUs\_regacy\Axis05_R" />
-    <Folder Include="POUs\_regacy\Axis01_Guide" />
-    <Folder Include="POUs\_regacy\System" />
-    <Folder Include="POUs\_regacy\Vision" />
-    <Folder Include="POUs\_regacy\Work" />
     <Folder Include="VISUs" />
     <Folder Include="POUs" />
   </ItemGroup>
@@ -302,7 +246,6 @@
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_Utilities">
       <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
-      <Namespace>Tc2_Utilities</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc3_Module">
       <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -313,17 +256,6 @@
     <None Include="Press.tmc">
       <SubType>Content</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PlaceholderResolution Include="Tc2_Standard">
-      <Resolution>Tc2_Standard, * (Beckhoff Automation GmbH)</Resolution>
-    </PlaceholderResolution>
-    <PlaceholderResolution Include="Tc2_System">
-      <Resolution>Tc2_System, * (Beckhoff Automation GmbH)</Resolution>
-    </PlaceholderResolution>
-    <PlaceholderResolution Include="Tc3_Module">
-      <Resolution>Tc3_Module, * (Beckhoff Automation GmbH)</Resolution>
-    </PlaceholderResolution>
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>

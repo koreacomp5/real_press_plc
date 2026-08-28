@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Conv" Id="{584aa389-3ee6-4358-94d9-523b23593783}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+	Auto_Mode					AT%I*	:	BOOL	;	// 컨베이어 자동 스위치
+	E_STOP						AT%I*	:	BOOL	;	// 컨베이어 E_STOP
+
+
+	//Output Card 01
+	Conv_Motor_CW				AT%Q*	:	BOOL	;	// 컨베이어 전진
+	Conv_Motor_CCW				AT%Q*	:	BOOL	;	// 컨베이어 후진
+	Conv_Motor_High_Speed		AT%Q*	:	BOOL	;	// 컨베이어 고속
+	Conv_Motor_Normal_Speed		AT%Q*	:	BOOL	;	// 컨베이어 중속
+	Conv_Motor_Low_Speed		AT%Q*	:	BOOL	;	// 컨베이어 저속
+
+	HMI_Motor_CW						:	BOOL	;	// HMI 컨베이어 전진
+	HMI_Motor_CCW						:	BOOL	;	// HMI 컨베이어 후진 
+	HMI_Motor_High_Speed				:	BOOL	;	// HMI 컨베이어 고속
+	HMI_Motor_Normal_Speed				:	BOOL	;	// HMI 컨베이어 중속
+	HMI_Motor_Low_Speed					:	BOOL	;	// HMI 컨베이어 저속
+	
+	Motor_STOP							:	BOOL	;
+
+
+	
+
+	
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

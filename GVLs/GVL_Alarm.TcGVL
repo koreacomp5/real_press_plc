@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <GVL Name="GVL_Alarm" Id="{69112359-db72-41e9-b2cf-4d6a9a96ee20}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+ 	System_Estop_OK			: BOOL 	;
+//E-StopAlarm 장비 정지	
+	E_STOP_Total_Alarm		: BOOL	;
+	E_STOP_Alarm01			: BOOL	;		//EMO-Switch ON
+	E_STOP_Alarm02			: BOOL	;		//Door Open
+	E_STOP_Alarm03			: BOOL	;		//가이드 축 알람			
+	E_STOP_Alarm04			: BOOL	;		//X 축 인터락 알람
+	E_STOP_Alarm05			: BOOL	;		//Y 축 인터락 알람
+	E_STOP_Alarm06			: BOOL	;		//Z 축 인터락 알람
+	E_STOP_Alarm07			: BOOL	;		//R 축 인터락 알람
+	E_STOP_Alarm08			: BOOL	;		//비전 RUN OFF 알람
+	E_STOP_Alarm09			: BOOL	;
+	E_STOP_Alarm10			: BOOL	;		//Vision 통신 이상
+	E_STOP_Alarm11			: BOOL	;
+	E_STOP_Alarm12			: BOOL	;
+	E_STOP_Alarm13			: BOOL	;
+	E_STOP_Alarm14			: BOOL	;
+	E_STOP_Alarm15			: BOOL	;
+	E_STOP_Alarm16			: BOOL	;
+	E_STOP_Alarm17			: BOOL	;
+	E_STOP_Alarm18			: BOOL	;
+	E_STOP_Alarm19			: BOOL	;
+	E_STOP_Alarm20			: BOOL	;
+//Display Alarm 알람
+	Display_Alarm01			: BOOL	;		
+	Display_Alarm02			: BOOL	;
+	Display_Alarm03			: BOOL	;
+	Display_Alarm04			: BOOL	;
+	Display_Alarm05			: BOOL	;
+	Display_Alarm06			: BOOL	;
+	Display_Alarm07			: BOOL	;
+	Display_Alarm08			: BOOL	;
+	Display_Alarm09			: BOOL	;
+	Display_Alarm10			: BOOL	;		//Vision 측정 NG
+	Display_Alarm11			: BOOL	;
+	Display_Alarm12			: BOOL	;
+	Display_Alarm13			: BOOL	;
+	Display_Alarm14			: BOOL	;	
+	Display_Alarm15			: BOOL	;
+//Axis01 Motor Alarm
+	Axis01_Total_Alarm		: BOOL	;		
+	Axis01_Alarm01			: BOOL	;		
+	Axis01_Alarm02			: BOOL	;
+	Axis01_Alarm03			: BOOL	;		
+	Axis01_Alarm04			: BOOL	;		
+	Axis01_Alarm05			: BOOL	;		
+	Axis01_Alarm06			: BOOL	;		
+	Axis01_Alarm07			: BOOL	;		
+	Axis01_Alarm08			: BOOL	;		
+	Axis01_Alarm09			: BOOL	;		
+	Axis01_Alarm10			: BOOL	;	
+	Axis01_Alarm11			: BOOL	;
+	Axis01_Alarm12			: BOOL	;			
+//Axis02 Motor Alarm
+	Axis02_Total_Alarm		: BOOL	;		
+	Axis02_Alarm01			: BOOL	;		
+	Axis02_Alarm02			: BOOL	;
+	Axis02_Alarm03			: BOOL	;		
+	Axis02_Alarm04			: BOOL	;		
+	Axis02_Alarm05			: BOOL	;		
+	Axis02_Alarm06			: BOOL	;		
+	Axis02_Alarm07			: BOOL	;		
+	Axis02_Alarm08			: BOOL	;		
+	Axis02_Alarm09			: BOOL	;		
+	Axis02_Alarm10			: BOOL	;
+	Axis02_Alarm11			: BOOL	;
+	Axis02_Alarm12			: BOOL	;		
+//Axis03 Motor Alarm
+	Axis03_Total_Alarm		: BOOL	;		
+	Axis03_Alarm01			: BOOL	;		
+	Axis03_Alarm02			: BOOL	;
+	Axis03_Alarm03			: BOOL	;		
+	Axis03_Alarm04			: BOOL	;		
+	Axis03_Alarm05			: BOOL	;		
+	Axis03_Alarm06			: BOOL	;		
+	Axis03_Alarm07			: BOOL	;		
+	Axis03_Alarm08			: BOOL	;		
+	Axis03_Alarm09			: BOOL	;		
+	Axis03_Alarm10			: BOOL	;		
+	Axis03_Alarm11			: BOOL	;
+	Axis03_Alarm12			: BOOL	;
+//Axis04 Motor Alarm
+	Axis04_Total_Alarm		: BOOL	;		
+	Axis04_Alarm01			: BOOL	;		
+	Axis04_Alarm02			: BOOL	;
+	Axis04_Alarm03			: BOOL	;		
+	Axis04_Alarm04			: BOOL	;		
+	Axis04_Alarm05			: BOOL	;		
+	Axis04_Alarm06			: BOOL	;		
+	Axis04_Alarm07			: BOOL	;		
+	Axis04_Alarm08			: BOOL	;		
+	Axis04_Alarm09			: BOOL	;		
+	Axis04_Alarm10			: BOOL	;		
+	Axis04_Alarm11			: BOOL	;
+	Axis04_Alarm12			: BOOL	;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>
