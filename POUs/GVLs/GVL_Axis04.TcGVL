@@ -96,7 +96,7 @@ VAR_GLOBAL PERSISTENT
 	Maint_Position_Data					:	LREAL	;
 	Tool_Change_Position_Data			:	LREAL	;
 	Calibration_Position_Data			:	LREAL	;	
-	Cleaning_Move_Data: LREAL := -25;
+	Cleaning_Move_Data: LREAL := -23;
 //Motor_Speed_Data
 	Work_Speed							:	LREAL	;
 	Jog_Speed							:	LREAL	;
