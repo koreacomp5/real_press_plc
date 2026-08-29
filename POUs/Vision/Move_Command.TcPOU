@@ -4,6 +4,7 @@
     <Declaration><![CDATA[PROGRAM Move_Command
 VAR
 	Motor_Move_Trig          : R_TRIG;
+	Move_Watchdog            : TON;
 
 END_VAR
 ]]></Declaration>
@@ -27,8 +28,22 @@ END_IF
 
 IF GVL_Axis01.Calibration_Position AND
    GVL_Axis02.Calibration_Position AND
-   GVL_Axis03.Calibration_Position AND 
+   GVL_Axis03.Calibration_Position AND
    GVL_Axis04.Calibration_Position THEN
+	GVL_Calibration.Motor_Move := FALSE;
+	GVL_Calibration.Calibration_Pos_Moving := FALSE;
+END_IF
+
+// 잔류 해제 1: 이동을 지속할 수 없는 상태(모드 이탈/정지/세이프티)면 즉시 클리어
+IF NOT GVL_System.Calibration_Mode OR GVL_System.Stop
+   OR GVL_System.All_Motor_Stop OR NOT GVL_System.Safety_ALL_OK THEN
+	GVL_Calibration.Motor_Move := FALSE;
+	GVL_Calibration.Calibration_Pos_Moving := FALSE;
+END_IF
+
+// 잔류 해제 2: 워치독 — 이동 중 10초 초과 시 강제 클리어 (축 알람 등으로 완료 불가 케이스)
+Move_Watchdog(IN := GVL_Calibration.Calibration_Pos_Moving, PT := T#10S);
+IF Move_Watchdog.Q THEN
 	GVL_Calibration.Motor_Move := FALSE;
 	GVL_Calibration.Calibration_Pos_Moving := FALSE;
 END_IF]]></ST>

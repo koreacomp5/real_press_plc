@@ -39,6 +39,7 @@ END_VAR
 	GVL_System.Axis03_Wait_Pos_Move		:= FALSE;
 	GVL_System.Axis04_Wait_Pos_Move		:= FALSE;
 	GVL_Calibration.Calibration_Pos_Moving := FALSE;
+	GVL_Calibration.Motor_Move := FALSE;
 
 END_IF ]]></ST>
     </Implementation>
