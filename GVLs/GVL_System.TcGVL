@@ -14,7 +14,7 @@ VAR_GLOBAL
 	Test_Mode					:	BOOL	;
 	All_Initial					:	BOOL	;
 	ToggleBit					:	BOOL	;
-	Door_Bypass					:	BOOL	;
+	Door_Bypass		AT%Q*		:	BOOL	;			//도어 인터록 바이패스 릴레이 출력 (EL2809 Ch11)
 //EMO SW	
 	EMO_SWitch		AT%I*		:	BOOL	;
 
