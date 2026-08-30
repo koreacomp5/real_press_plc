@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="Alarm_Error" Id="{3571cb56-96d6-492b-8474-50953eb81009}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Alarm_Error
 VAR
@@ -228,25 +228,6 @@ Machine Stop"</v>
                               <v n="Id">2034L</v>
                             </o>
                             <v n="Id">2033L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
-                              <v n="Operand">"GVL_Alarm.E_STOP_Alarm10"</v>
-                              <v n="Type">"BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">""</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">1</v>
-                                <v n="Fixed">true</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">true</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">2066L</v>
-                            </o>
-                            <v n="Id">2065L</v>
                           </o>
                           <o>
                             <o n="Operand" t="Operand">
@@ -543,25 +524,6 @@ Machine Stop"</v>
                               <v n="Id">1264L</v>
                             </o>
                             <v n="Id">1263L</v>
-                          </o>
-                          <o>
-                            <o n="Operand" t="Operand">
-                              <v n="Operand">"GVL_Alarm.E_STOP_Alarm10"</v>
-                              <v n="Type">"BOOL"</v>
-                              <v n="Comment">""</v>
-                              <v n="SymbolComment">""</v>
-                              <v n="Address">"Constant_Address_Serialization_Value"</v>
-                              <o n="Flags" t="Flags">
-                                <v n="Flags">0</v>
-                                <v n="Fixed">true</v>
-                                <v n="Extensible">false</v>
-                              </o>
-                              <v n="LValue">false</v>
-                              <v n="Boolean">true</v>
-                              <v n="IsInstance">false</v>
-                              <v n="Id">1244L</v>
-                            </o>
-                            <v n="Id">1243L</v>
                           </o>
                         </l2>
                         <o n="InputParam" t="ParamList">

@@ -3,7 +3,6 @@
   <GVL Name="GVL_Alarm" Id="{69112359-db72-41e9-b2cf-4d6a9a96ee20}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	
  	System_Estop_OK			: BOOL 	;
 //E-StopAlarm 장비 정지	
 	E_STOP_Total_Alarm		: BOOL	;
@@ -16,7 +15,7 @@ VAR_GLOBAL
 	E_STOP_Alarm07			: BOOL	;		//R 축 인터락 알람
 	E_STOP_Alarm08			: BOOL	;		//비전 RUN OFF 알람
 	E_STOP_Alarm09			: BOOL	;
-	E_STOP_Alarm10			: BOOL	;		//Vision 통신 이상
+	//E_STOP_Alarm10			: BOOL	;		//Vision 통신 이상
 	E_STOP_Alarm11			: BOOL	;
 	E_STOP_Alarm12			: BOOL	;
 	E_STOP_Alarm13			: BOOL	;
